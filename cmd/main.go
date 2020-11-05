@@ -13,7 +13,7 @@ import (
 const (
 	// Составлена 1 УП для установщиков для изделий СЛ 1 раз в 3 месяца и чаще
 	createNPM = "Создание программы для NPM"
-	operator  = "Александров Александр Викторович"
+	operator  = "Егоров Александр Александрович"
 	// Александров Александр Викторович
 	// Аникина Раиса Владимировна
 	// Составлена 1 УП для установщиков для контрактных изделий 1 раз в месяц и чаще
@@ -52,6 +52,15 @@ const (
 	//Выполнена проверка программы установщиков 1 раз месяц и чаще
 	VerifyProgrammInstaller = "Проверка программы установщиков"
 	VerifyEquipment         = "Проверка комплектации"
+
+	// Выполнена проверка первой платы после сборки установщиками, оставлен комментарий в задаче 1 раз месяц и чаще
+	VerifyPCBLine = "Проверка первой платы до оплавления"
+
+	// Выполнена проверка первой спаянной платы после селективной пайки, оставлен комментарий в задаче 1 раз месяц и чаще
+	VerifyPCBSolder = "Проверка первой платы после пайки"
+
+	// Выполнена проверка первой платы после оплавления на ICT, сотавлен комментарий в задаче 1 раз месяц и чаще
+	ICT = "Внутрисхемное тестирование ICT"
 )
 
 func main() {
@@ -83,8 +92,69 @@ func main() {
 	fmt.Println("responseTraining - ", responseTraining)
 	responseWriteInstraction := checkWriteInstraction(reportCsv2)
 	fmt.Println("responseWriteInstraction - ", responseWriteInstraction)
-	responseVerifyInstaller := checkVerifyInstaller(reportCsv2)
-	fmt.Println("responseVerifyInstaller - ", responseVerifyInstaller)
+
+	reponseVerifyProgrammInstaller := checkVerifyProgrammInstaller(reportCsv2)
+	fmt.Println("reponseVerifyProgrammInstaller", reponseVerifyProgrammInstaller)
+	reponseVerifyEquipment := checkVerifyEquipment(reportCsv2)
+	fmt.Println("reponseVerifyEquipment", reponseVerifyEquipment)
+	if reponseVerifyProgrammInstaller+reponseVerifyEquipment == 2 {
+		fmt.Println("responseVerifyInstaller - OK")
+	} else {
+		fmt.Println("responseVerifyInstaller - NOK")
+	}
+
+	reponseVerifyPCBLine := checkVerifyPCBLine(reportCsv2)
+	fmt.Println("reponseVerifyPCBLine - ", reponseVerifyPCBLine)
+
+	responseVerifyPCBSolder := checkVerifyPCBSolder(reportCsv2)
+	fmt.Println("responseVerifyPCBSolder - ", responseVerifyPCBSolder)
+
+	responseICT := checkICT(reportCsv2)
+	fmt.Println("responseICT - ", responseICT)
+
+	d := time.Date(2020, 11, 3, 12, 30, 0, 0, time.UTC)
+	//10.1.2020 19:48:34
+	//d := time.Date("2020, 11, 3, 12, 30, 0, 0, time.UTC")
+	year, month, day := d.Date()
+	fmt.Printf("%v.%v.%v\n", year, month, day)
+
+	now := time.Now()
+	fmt.Println(now.Format("01.02.2006"))
+	fmt.Println("Today:", now)
+	after := now.AddDate(0, -3, 0)
+	fmt.Println("Subtract 1 Month:", after)
+	fmt.Println("Минус 3 месяца", after.Format("01.02.2006"))
+	//	var f time.Time
+	//f := "1:30:00 AM"
+	//	fmt.Println("fff", f.Format("2:40:00"))
+	g := "01.10.2020"
+	layout := "01.02.2006"
+	tt, _ := time.Parse(layout, g)
+	//	fmt.Println("fff", tt.Format("01.02.2006"))
+	fmt.Println("fff", tt.Format("01.02.2006"))
+	after2 := tt.AddDate(0, 0, -3)
+	fmt.Println("Минус 3 мес по отчету - ", after2.Format("01.02.2006"))
+
+	inputTime := "1:30:00 AM"
+	ww, _ := time.Parse("3:04:05 AM", inputTime)
+	inputTime2 := "1:30:00 AM"
+	ww2, _ := time.Parse("3:04:05 AM", inputTime2)
+	fmt.Println("ww1 -", ww)
+	fmt.Println("ww2 -", ww2)
+	fmt.Println("ww -", ww.Format("2:04:00"))
+	//	ww3 := ww.Format("2:04:00") + ww2.Format("2:04:00")
+	//	start := time.Date(ww)
+	//	afterTenSeconds := start.Add(time.Second * 10)
+	//	fmt.Printf("start = %v\n", start)
+	//	fmt.Printf("start.Add(time.Minute * 10) = %v\n", afterTenMinutes)
+	//	newYY := yy.Add(ww * ww2)
+
+	//	fmt.Println("newYY - ", newYY.Format("2:04:00"))
+	//	ww4, _ := time.Parse("3:04:05 AM", ww3)
+	//	fmt.Println("ww3 -", ww4.Format("2:04:00"))
+
+	//responseVerifyInstaller := checkVerifyInstaller(reportCsv2)
+	//fmt.Println("responseVerifyInstaller - ", responseVerifyInstaller)
 	/*
 		counterNPM := 0
 		for _, each := range reportCsv2 {
@@ -452,64 +522,152 @@ func checkWriteInstraction(rows [][]string) string {
 // Выполнена проверка программы установщиков 1 раз месяц и чаще
 // VerifyProgrammInstaller = "Проверка программы установщиков"
 // VerifyEquipment         = "Проверка комплектации"
-func checkVerifyInstaller(rows [][]string) string {
-	counterVerifyInstaller := 0
+func checkVerifyProgrammInstaller(rows [][]string) int {
+
 	counterVerifyProgrammInstaller := 0
-	var resultVerifyInstaller string
-	var resultVerifyEquipment string
-	var result string
+
+	var result int
 	for _, each := range rows {
 		if each[18] == operator {
 			if each[17] == VerifyProgrammInstaller {
 				//	intr := each[17]
 				//	fmt.Println("Инструкция - ", intr)
-				counterVerifyInstaller++
+				counterVerifyProgrammInstaller++
 				//	fmt.Println(counterNPM)
-				if counterVerifyInstaller >= 1 {
+				if counterVerifyProgrammInstaller >= 1 {
 					//	fmt.Println("OK")
-					resultVerifyInstaller := "OK"
-					fmt.Println("resultVerifyInstaller OK -", resultVerifyInstaller)
-					return resultVerifyInstaller
+					result := 1
+					fmt.Println("resultVerifyInstaller OK -", result)
+					return result
 
 					//	return resalt
-				} else if counterVerifyInstaller < 1 {
+				} else if counterVerifyProgrammInstaller < 1 {
 					//	fmt.Println("NOK")
-					resultVerifyInstaller := "NOK"
-					fmt.Println("resultVerifyInstaller NOK -", resultVerifyInstaller)
-					return resultVerifyInstaller
+					result := 0
+					fmt.Println("resultVerifyInstaller NOK -", result)
+					return result
 				}
+
 			}
 
 		}
 
 	}
 
+	return result
+}
+
+func checkVerifyEquipment(rows [][]string) int {
+	counterVerifyInstaller := 0
+
+	var result int
 	for _, each := range rows {
 		if each[18] == operator {
+
 			if each[17] == VerifyEquipment {
-				counterVerifyProgrammInstaller++
-				if counterVerifyProgrammInstaller >= 1 {
-					resultVerifyEquipment := "OK"
-					fmt.Println("resultVerifyEquipment OK -", resultVerifyEquipment)
-					return resultVerifyEquipment
-				} else if counterVerifyProgrammInstaller < 1 {
-					resultVerifyEquipment := "NOK"
-					fmt.Println("resultVerifyEquipment NOK -", resultVerifyEquipment)
-					return resultVerifyEquipment
-				} else if counterVerifyProgrammInstaller == 0 {
-					resultVerifyEquipment := "NOK"
-					fmt.Println("resultVerifyEquipment NOK -", resultVerifyEquipment)
-					return resultVerifyEquipment
+
+				counterVerifyInstaller++
+				if counterVerifyInstaller >= 1 {
+					result := 1
+					fmt.Println("resultVerifyEquipment OK -", result)
+					return result
+				} else if counterVerifyInstaller < 1 {
+					result := 0
+					fmt.Println("resultVerifyEquipment NOK -", result)
+					return result
 				}
 			}
+
 		}
 
 	}
-	if resultVerifyInstaller == "OK" && resultVerifyEquipment == "OK" {
-		return result
-	} else if resultVerifyInstaller == "OK" && resultVerifyEquipment == "NOK" {
-		result := "NOK"
-		return result
+
+	return result
+}
+
+// VerifyPCBLine
+func checkVerifyPCBLine(rows [][]string) string {
+	counterVerifyPCBLine := 0
+
+	var result string
+	for _, each := range rows {
+		if each[18] == operator {
+
+			if each[17] == VerifyPCBLine && each[3] == "SMT" {
+
+				counterVerifyPCBLine++
+				if counterVerifyPCBLine >= 1 {
+					result := "OK"
+					//	fmt.Println("resultVerifyEquipment OK -", result)
+					return result
+				} else if counterVerifyPCBLine < 1 {
+					result := "NOK"
+					//	fmt.Println("resultVerifyEquipment NOK -", result)
+					return result
+				}
+			}
+
+		}
+
 	}
+
+	return result
+}
+
+// VerifyPCBSolder = "Проверка первой платы после пайки"
+func checkVerifyPCBSolder(rows [][]string) string {
+	counterVerifyPCBSolder := 0
+
+	var result string
+	for _, each := range rows {
+		if each[18] == operator {
+
+			if each[17] == VerifyPCBSolder && each[3] == "THT" {
+
+				counterVerifyPCBSolder++
+				if counterVerifyPCBSolder >= 1 {
+					result := "OK"
+					//	fmt.Println("resultVerifyEquipment OK -", result)
+					return result
+				} else if counterVerifyPCBSolder < 1 {
+					result := "NOK"
+					//	fmt.Println("resultVerifyEquipment NOK -", result)
+					return result
+				}
+			}
+
+		}
+
+	}
+
+	return result
+}
+
+// ICT = "Внутрисхемное тестирование ICT"
+func checkICT(rows [][]string) string {
+	counterICT := 0
+
+	var result string
+	for _, each := range rows {
+		if each[18] == operator {
+
+			if each[17] == ICT {
+
+				counterICT++
+				if counterICT >= 1 {
+					result := "OK"
+					//	fmt.Println("resultVerifyEquipment OK -", result)
+					return result
+				} else if counterICT < 1 {
+					result := "NOK"
+					//	fmt.Println("resultVerifyEquipment NOK -", result)
+					return result
+				}
+			}
+
+		}
+
+	}
+
 	return result
 }
