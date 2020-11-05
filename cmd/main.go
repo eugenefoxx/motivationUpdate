@@ -13,7 +13,7 @@ import (
 const (
 	// Составлена 1 УП для установщиков для изделий СЛ 1 раз в 3 месяца и чаще
 	createNPM = "Создание программы для NPM"
-	operator  = "Егоров Александр Александрович"
+	operator  = "Байрамашвили Альберт Зурабович"
 	// Александров Александр Викторович
 	// Аникина Раиса Владимировна
 	// Составлена 1 УП для установщиков для контрактных изделий 1 раз в месяц и чаще
@@ -64,7 +64,7 @@ const (
 )
 
 func main() {
-	reportCsv1 := readfileseeker("./docs/Ежедневный отчёт оператора (с 01.10.2020) (Ответы) (1).csv")
+	reportCsv1 := readfileseeker("./docs/Ежедневный отчёт оператора (с 01.10.2020) (Ответы) (2).csv")
 
 	//reportCsv2 := readseeker(reportCsv1)
 	writeChange(reportCsv1)
@@ -407,36 +407,65 @@ func checkProgrammCreateAOIKohYoung(rows [][]string) string {
 }
 
 // SetupSelectivLine
+// Выполнены работы по загрузке и\или настройке машины селективной пайки 22 часа в месяц и больше
 func checkSetupSelectivLine(rows [][]string) string {
 	//	counterCreateAOIKohYoung := 0
-	layout := "10:30:40 AM"
-	//	t, _ := time.ParseDuration("00:00:00 AM")
-	//time, _ := time.ParseDuration("22:00:00")
+	layout := "3:04:05"
+	layoutPM := "3:04:05 PM"
+	t0, _ := time.Parse(layout, "00:00:00")
+	var sum time.Time
 	var result string
 	for _, each := range rows {
 		if each[18] == operator {
 			if each[17] == SetupSelectivLineSEHO && each[3] == "THT" {
 				t, _ := time.Parse(layout, each[16])
+				sum = sum.Add(t.Sub(t0))
 				fmt.Println("Time -", t)
-				//	counterCreateAOIKohYoung++
-				//	t++
-				//	fmt.Println(counterNPM)
-				/*
-					if t >= time {
-						//	fmt.Println("OK")
-						fmt.Println("Время - ", t)
-						result := "OK"
-						return result
-						//	return resalt
-					} else if t < time {
-						//	fmt.Println("NOK")
-						result := "NOK"
-						return result
-					} */
+
 			}
 		}
 	}
+	fmt.Println("Sum time - ", sum)
+
+	checkTimeL0 := "07:00:00 AM"
+	tcheckTimeL0, _ := time.Parse(layoutPM, checkTimeL0)
+	fmt.Printf("tcheckTimeL1: %v\n", tcheckTimeL0)
+	checkTimeL1 := "02:00:00 PM"
+	tcheckTimeL1, _ := time.Parse(layoutPM, checkTimeL1)
+	fmt.Printf("tcheckTimeL1: %v\n", tcheckTimeL1)
+	checkTimeL2 := "09:00:00 PM"
+	tcheckTimeL2, _ := time.Parse(layoutPM, checkTimeL2)
+	fmt.Printf("tcheckTimeL2: %v\n", tcheckTimeL2)
+	checkTimeL3 := "02:00:00 PM"
+	tcheckTimeL3, _ := time.Parse(layoutPM, checkTimeL3)
+	fmt.Printf("tcheckTimeL3: %v\n", tcheckTimeL3)
+
+	tt, _ := time.ParseDuration("138h")
+	fmt.Printf("часы %v\n", tt.Hours())
+
+	fn0(tcheckTimeL0, sum, tcheckTimeL1, tcheckTimeL2)
+
+	/*
+		if level == true {
+			fmt.Println("OK")
+			result := "OK"
+			return result
+		} else {
+			fmt.Println("NOK")
+			result := "NOK"
+			return result
+		}
+	*/
 	return result
+}
+
+func fn0(tcheckTimeL0 time.Time, sum time.Time, tcheckTimeL1 time.Time, tcheckTimeL2 time.Time) {
+	level0 := tcheckTimeL0.Before(sum)
+	fmt.Println("level0 is:", level0)
+	level1 := tcheckTimeL0.After(sum) && tcheckTimeL1.Before(sum)
+	fmt.Println("level1 is:", level1)
+	level2 := tcheckTimeL1.After(sum) && tcheckTimeL2.Before(sum)
+	fmt.Println("level2 is:", level2)
 }
 
 // SetupTrafaretPrinterPRI = "Настройка принтера Prim / Sec"
