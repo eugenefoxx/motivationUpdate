@@ -7,13 +7,14 @@ import (
 	"io"
 	"log"
 	"os"
+	"strings"
 	"time"
 )
 
 const (
 	// Составлена 1 УП для установщиков для изделий СЛ 1 раз в 3 месяца и чаще
 	createNPM = "Создание программы для NPM"
-	operator  = "Байрамашвили Альберт Зурабович"
+	operator  = "Ельцов Андрей Николаевич"
 	// Александров Александр Викторович
 	// Аникина Раиса Владимировна
 	// Составлена 1 УП для установщиков для контрактных изделий 1 раз в месяц и чаще
@@ -29,7 +30,8 @@ const (
 	ProgrammCreateAOIKohYoungPRI = "Создание программы для AOI PRI"
 	ProgrammCreateAOIKohYoungSEC = "Создание программы для AOI SEC"
 	// Выполнены работы по загрузке и\или настройке машины селективной пайки 22 часа в месяц и больше
-	SetupSelectivLineSEHO      = "Настройка SEHO PRI"
+	SetupSelectivLineSEHOPRI   = "Настройка SEHO PRI"
+	SetupSelectivLineSEHOSEC   = "Настройка SEHO SEC"
 	SetupSelectivLineSoldering = "Пайка компонентов PRI"
 	// Выполнены работы по проверке и\или настройке на АОИ Modus 11 часов и более 50 заготовок
 
@@ -84,7 +86,7 @@ func main() {
 	fmt.Println("responseCheckCreateAOIModus - ", responseCheckCreateAOIModus)
 	responseCheckCreateAOIKohYoung := checkProgrammCreateAOIKohYoung(reportCsv2)
 	fmt.Println("responseCheckCreateAOIKohYoung - ", responseCheckCreateAOIKohYoung)
-	responseSetupSelectivLine := checkSetupSelectivLine(reportCsv2)
+	responseSetupSelectivLine := checkSetupSelectivLineSEHO(reportCsv2)
 	fmt.Println("responseSetupSelectivLine - ", responseSetupSelectivLine)
 	responseSetupTrafaretPrinter := checkSetupTrafaretPrinter(reportCsv2)
 	fmt.Println("responseSetupTrafaretPrinter - ", responseSetupTrafaretPrinter)
@@ -408,42 +410,161 @@ func checkProgrammCreateAOIKohYoung(rows [][]string) string {
 
 // SetupSelectivLine
 // Выполнены работы по загрузке и\или настройке машины селективной пайки 22 часа в месяц и больше
-func checkSetupSelectivLine(rows [][]string) string {
+func checkSetupSelectivLineSEHO(rows [][]string) int {
 	//	counterCreateAOIKohYoung := 0
-	layout := "3:04:05"
-	layoutPM := "3:04:05 PM"
-	t0, _ := time.Parse(layout, "00:00:00")
-	var sum time.Time
-	var result string
+	//layout := "3:04:05"
+	//	layoutPM := "3:04:05 PM"
+	//	t0, _ := time.Parse(layout, "00:00:00")
+	//	var sum time.Time
+	var result int
+	var sumInSeconds int
+	comparedDuration7, _ := time.ParseDuration("7h")
+	comparedDurations7Sec := int(comparedDuration7.Seconds())
+	comparedDuration14, _ := time.ParseDuration("14h")
+	comparedDurations14Sec := int(comparedDuration14.Seconds())
+	comparedDuration21, _ := time.ParseDuration("21h")
+	comparedDurations21Sec := int(comparedDuration21.Seconds())
+	comparedDuration28, _ := time.ParseDuration("28h")
+	comparedDurations28Sec := int(comparedDuration28.Seconds())
+	comparedDuration35, _ := time.ParseDuration("35h")
+	comparedDurations35Sec := int(comparedDuration35.Seconds())
+	comparedDuration42, _ := time.ParseDuration("42h")
+	comparedDurations42Sec := int(comparedDuration42.Seconds())
+	comparedDuration49, _ := time.ParseDuration("49h")
+	comparedDurations49Sec := int(comparedDuration49.Seconds())
+	comparedDuration56, _ := time.ParseDuration("56h")
+	comparedDurations56Sec := int(comparedDuration56.Seconds())
+	comparedDuration63, _ := time.ParseDuration("63h")
+	comparedDurations63Sec := int(comparedDuration63.Seconds())
+	comparedDuration70, _ := time.ParseDuration("70h")
+	comparedDurations70Sec := int(comparedDuration70.Seconds())
+	comparedDuration77, _ := time.ParseDuration("77h")
+	comparedDurations77Sec := int(comparedDuration77.Seconds())
+	comparedDuration84, _ := time.ParseDuration("84h")
+	comparedDurations84Sec := int(comparedDuration84.Seconds())
+	comparedDuration91, _ := time.ParseDuration("91h")
+	comparedDurations91Sec := int(comparedDuration91.Seconds())
+	comparedDuration98, _ := time.ParseDuration("98h")
+	comparedDurations98Sec := int(comparedDuration98.Seconds())
+	comparedDuration105, _ := time.ParseDuration("105h")
+	comparedDurations105Sec := int(comparedDuration105.Seconds())
+	comparedDuration112, _ := time.ParseDuration("112h")
+	comparedDurations112Sec := int(comparedDuration112.Seconds())
 	for _, each := range rows {
 		if each[18] == operator {
-			if each[17] == SetupSelectivLineSEHO && each[3] == "THT" {
-				t, _ := time.Parse(layout, each[16])
-				sum = sum.Add(t.Sub(t0))
-				fmt.Println("Time -", t)
+			if each[17] == SetupSelectivLineSEHOPRI || each[17] == SetupSelectivLineSEHOSEC && each[3] == "THT" {
+				//	t, _ := time.Parse(layout, each[16])
+				//	sum = sum.Add(t.Sub(t0))
+				//	fmt.Println("Time -", t)
+
+				pt := strings.Split(each[16], ":") // parsed time by ":"
+				if len(pt) != 3 {
+					log.Fatalf("input format mismatch.\nExpecting H:M:S\nHave: %v", pt)
+				}
+
+				h, m, s := pt[0], pt[1], pt[2] // hours, minutes, seconds
+				formattedDuration := fmt.Sprintf("%sh%sm%ss", h, m, s)
+
+				duration, err := time.ParseDuration(formattedDuration)
+				if err != nil {
+					log.Fatalf("Failed to parse duration: %v", formattedDuration)
+				}
+				sumInSeconds += int(duration.Seconds())
 
 			}
 		}
 	}
-	fmt.Println("Sum time - ", sum)
 
-	checkTimeL0 := "07:00:00 AM"
-	tcheckTimeL0, _ := time.Parse(layoutPM, checkTimeL0)
-	fmt.Printf("tcheckTimeL1: %v\n", tcheckTimeL0)
-	checkTimeL1 := "02:00:00 PM"
-	tcheckTimeL1, _ := time.Parse(layoutPM, checkTimeL1)
-	fmt.Printf("tcheckTimeL1: %v\n", tcheckTimeL1)
-	checkTimeL2 := "09:00:00 PM"
-	tcheckTimeL2, _ := time.Parse(layoutPM, checkTimeL2)
-	fmt.Printf("tcheckTimeL2: %v\n", tcheckTimeL2)
-	checkTimeL3 := "02:00:00 PM"
-	tcheckTimeL3, _ := time.Parse(layoutPM, checkTimeL3)
-	fmt.Printf("tcheckTimeL3: %v\n", tcheckTimeL3)
+	sumInDuration, _ := time.ParseDuration(fmt.Sprintf("%ds", sumInSeconds))
+	if sumInSeconds <= comparedDurations7Sec {
+		fmt.Printf("Sum [%s] < compareDuration7 [%s]\n", sumInDuration.String(), comparedDuration7.String())
+		result := 0
+		return result
+	} else if sumInSeconds <= comparedDurations14Sec {
+		fmt.Printf("Sum [%s] < compareDuration14 [%s]\n", sumInDuration.String(), comparedDuration14.String())
+		result := 1
+		return result
+	} else if sumInSeconds <= comparedDurations21Sec {
+		fmt.Printf("Sum [%s] < compareDuration21 [%s]\n", sumInDuration.String(), comparedDuration21.String())
+		result := 2
+		return result
+	} else if sumInSeconds <= comparedDurations28Sec {
+		fmt.Printf("Sum [%s] < compareDuration28 [%s]\n", sumInDuration.String(), comparedDuration28.String())
+		result := 3
+		return result
+	} else if sumInSeconds <= comparedDurations35Sec {
+		fmt.Printf("Sum [%s] < compareDuration35 [%s]\n", sumInDuration.String(), comparedDuration35.String())
+		result := 4
+		return result
+	} else if sumInSeconds <= comparedDurations42Sec {
+		fmt.Printf("Sum [%s] < compareDuration42 [%s]\n", sumInDuration.String(), comparedDuration42.String())
+		result := 5
+		return result
+	} else if sumInSeconds <= comparedDurations49Sec {
+		fmt.Printf("Sum [%s] < compareDuration49 [%s]\n", sumInDuration.String(), comparedDuration49.String())
+		result := 6
+		return result
+	} else if sumInSeconds <= comparedDurations56Sec {
+		fmt.Printf("Sum [%s] < compareDuration56 [%s]\n", sumInDuration.String(), comparedDuration56.String())
+		result := 7
+		return result
+	} else if sumInSeconds <= comparedDurations63Sec {
+		fmt.Printf("Sum [%s] < compareDuration63 [%s]\n", sumInDuration.String(), comparedDuration63.String())
+		result := 8
+		return result
+	} else if sumInSeconds <= comparedDurations70Sec {
+		fmt.Printf("Sum [%s] < compareDuration70 [%s]\n", sumInDuration.String(), comparedDuration70.String())
+		result := 9
+		return result
+	} else if sumInSeconds <= comparedDurations77Sec {
+		fmt.Printf("Sum [%s] < compareDuration77 [%s]\n", sumInDuration.String(), comparedDuration77.String())
+		result := 10
+		return result
+	} else if sumInSeconds <= comparedDurations84Sec {
+		fmt.Printf("Sum [%s] < compareDuration84 [%s]\n", sumInDuration.String(), comparedDuration84.String())
+		result := 11
+		return result
+	} else if sumInSeconds <= comparedDurations91Sec {
+		fmt.Printf("Sum [%s] < compareDuration91 [%s]\n", sumInDuration.String(), comparedDuration91.String())
+		result := 12
+		return result
+	} else if sumInSeconds <= comparedDurations98Sec {
+		fmt.Printf("Sum [%s] < compareDuration98 [%s]\n", sumInDuration.String(), comparedDuration98.String())
+		result := 13
+		return result
+	} else if sumInSeconds <= comparedDurations105Sec {
+		fmt.Printf("Sum [%s] < compareDuration105 [%s]\n", sumInDuration.String(), comparedDuration105.String())
+		result := 14
+		return result
+	} else if sumInSeconds <= comparedDurations112Sec {
+		fmt.Printf("Sum [%s] < compareDuration112 [%s]\n", sumInDuration.String(), comparedDuration112.String())
+		result := 15
+		return result
+	}
 
-	tt, _ := time.ParseDuration("138h")
-	fmt.Printf("часы %v\n", tt.Hours())
+	/*
+		fmt.Println("Sum time - ", sum)
 
-	fn0(tcheckTimeL0, sum, tcheckTimeL1, tcheckTimeL2)
+		checkTimeL0 := "07:00:00 AM"
+		tcheckTimeL0, _ := time.Parse(layoutPM, checkTimeL0)
+		fmt.Printf("tcheckTimeL1: %v\n", tcheckTimeL0)
+		checkTimeL1 := "02:00:00 PM"
+		tcheckTimeL1, _ := time.Parse(layoutPM, checkTimeL1)
+		fmt.Printf("tcheckTimeL1: %v\n", tcheckTimeL1)
+		checkTimeL2 := "09:00:00 PM"
+		tcheckTimeL2, _ := time.Parse(layoutPM, checkTimeL2)
+		fmt.Printf("tcheckTimeL2: %v\n", tcheckTimeL2)
+		checkTimeL3 := "02:00:00 PM"
+		tcheckTimeL3, _ := time.Parse(layoutPM, checkTimeL3)
+		fmt.Printf("tcheckTimeL3: %v\n", tcheckTimeL3)
+
+		level0 := tcheckTimeL0.Before(sum)
+		fmt.Println("level0 is:", level0)
+		level1 := tcheckTimeL0.After(sum) && tcheckTimeL1.Before(sum)
+		fmt.Println("level1 is:", level1)
+		level2 := tcheckTimeL1.After(sum) && tcheckTimeL2.Before(sum)
+		fmt.Println("level2 is:", level2)
+	*/
 
 	/*
 		if level == true {
@@ -457,15 +578,6 @@ func checkSetupSelectivLine(rows [][]string) string {
 		}
 	*/
 	return result
-}
-
-func fn0(tcheckTimeL0 time.Time, sum time.Time, tcheckTimeL1 time.Time, tcheckTimeL2 time.Time) {
-	level0 := tcheckTimeL0.Before(sum)
-	fmt.Println("level0 is:", level0)
-	level1 := tcheckTimeL0.After(sum) && tcheckTimeL1.Before(sum)
-	fmt.Println("level1 is:", level1)
-	level2 := tcheckTimeL1.After(sum) && tcheckTimeL2.Before(sum)
-	fmt.Println("level2 is:", level2)
 }
 
 // SetupTrafaretPrinterPRI = "Настройка принтера Prim / Sec"
