@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -14,7 +15,7 @@ import (
 const (
 	// Составлена 1 УП для установщиков для изделий СЛ 1 раз в 3 месяца и чаще
 	createNPM = "Создание программы для NPM"
-	operator  = "Байрамашвили Альберт Зурабович"
+	operator  = "Шергин Родион Олегович"
 	// Александров Александр Викторович
 	// Аникина Раиса Владимировна
 	// Составлена 1 УП для установщиков для контрактных изделий 1 раз в месяц и чаще
@@ -30,20 +31,30 @@ const (
 	ProgrammCreateAOIKohYoungPRI = "Создание программы для AOI PRI"
 	ProgrammCreateAOIKohYoungSEC = "Создание программы для AOI SEC"
 	// Выполнены работы по загрузке и\или настройке машины селективной пайки 22 часа в месяц и больше
-	SetupSelectivLineSEHOPRI   = "Настройка SEHO PRI"
-	SetupSelectivLineSEHOSEC   = "Настройка SEHO SEC"
-	SetupSelectivLineSoldering = "Пайка компонентов PRI"
+	SetupSelectivLineSEHOPRI      = "Настройка SEHO PRI"
+	SetupSelectivLineSEHOSEC      = "Настройка SEHO SEC"
+	SetupSelectivLineSolderingPRI = "Пайка компонентов PRI"
+	SetupSelectivLineSolderingSEC = "Пайка компонентов SEC"
+
 	// Выполнены работы по проверке и\или настройке на АОИ Modus 11 часов и более 50 заготовок
+	VerifyAOIPRI = "Проверка на АОИ PRI"
+	VerifyAOISEC = "Проверка на АОИ SEC"
 
 	// Выполнены работы по загрузке и\или настройке трафаретного принтера 2 раза в месяц и более
 	SetupTrafaretPrinterPRI = "Настройка принтера Pri"
 	SetupTrafaretPrinterSEC = "Настройка принтера Sec"
 
 	// Выполнены работы по загрузке и\или настройке установщиков 22 часа в месяц и больше
+	SetupNPM = "Настройка установщиков"
 
 	// Выполнены работы по проверке и\или настройке на АОИ KY 11 часов в месяц и больше (более 50 заготовок)
-
+	VerifyAOIKY    = "Проверка плат на АОИ"
+	VerifyAOIKYPRI = "Проверка плат на АОИ Prim"
+	VerifyAOIKYSEC = "Проверка плат на АОИ Sec"
 	// Выполнены работы по разбраковке на ревью станции после АОИ KY 11 часов в месяц и больше (более 50 заготовок)
+	ReviewStationPRI = "ReviewStation pri"
+	ReviewStationSEC = "ReviewStation sec"
+	ReviewStation    = "ReviewStation"
 
 	// Проведение обучений для сотрудников 1 раз в месяц и чаще, бланк ознакомления сотрудников с подписями сдан администратору
 	Training = "Проведение обучения"
@@ -63,6 +74,12 @@ const (
 
 	// Выполнена проверка первой платы после оплавления на ICT, сотавлен комментарий в задаче 1 раз месяц и чаще
 	ICT = "Внутрисхемное тестирование ICT"
+
+	// Выполнена отладка программы АОИ перед сборкой 1 раз в месяц и чаще.
+	// Настойка первой платы на АОИ  Настойка первой платы на АОИ SEC Настойка первой платы на АОИ PRI
+	DebugAOI    = "Настойка первой платы на АОИ"
+	DebugAOIPRI = "Настойка первой платы на АОИ PRI"
+	DebugAOISEC = "Настойка первой платы на АОИ SEC"
 )
 
 func main() {
@@ -78,43 +95,240 @@ func main() {
 	date1 := "01.10.2020"
 	date2 := "31.10.2020"
 
-	responseCheckNPMSL := checkCreatNPMStarLine(reportCsv2)
-	fmt.Println("responseCheckNPM StarLine - ", responseCheckNPMSL)
-	responseCheckNPMContruct := checkCreatNPMContruct(reportCsv2)
-	fmt.Println("responseCheckNPM Contruct - ", responseCheckNPMContruct)
-	responseCheckCreateSEHO := checkProgrammCreateSEHO(reportCsv2)
-	fmt.Println("responseCheckCreateSEHO - ", responseCheckCreateSEHO)
-	responseCheckCreateAOIModus := checkProgrammCreateAOIModus(reportCsv2)
-	fmt.Println("responseCheckCreateAOIModus - ", responseCheckCreateAOIModus)
-	responseCheckCreateAOIKohYoung := checkProgrammCreateAOIKohYoung(reportCsv2)
-	fmt.Println("responseCheckCreateAOIKohYoung - ", responseCheckCreateAOIKohYoung)
-	responseSetupSelectivLine := checkSetupSelectivLineSEHO(reportCsv2, date1, date2)
-	fmt.Println("responseSetupSelectivLine - ", responseSetupSelectivLine)
-	responseSetupTrafaretPrinter := checkSetupTrafaretPrinter(reportCsv2)
-	fmt.Println("responseSetupTrafaretPrinter - ", responseSetupTrafaretPrinter)
-	responseTraining := checkTraining(reportCsv2)
-	fmt.Println("responseTraining - ", responseTraining)
-	responseWriteInstraction := checkWriteInstraction(reportCsv2)
-	fmt.Println("responseWriteInstraction - ", responseWriteInstraction)
+	responseCheckNPMSL := checkCreatNPMStarLine(reportCsv2, date1, date2)
+	if responseCheckNPMSL == 1 {
+		responseCheckNPMSL = 3
+		fmt.Println("Составлена 1 УП для установщиков для изделий СЛ 1 раз в 3 месяца и чаще, балл - ", responseCheckNPMSL)
+	} else if responseCheckNPMSL != 1 {
+		responseCheckNPMSL = 0
+		fmt.Println("Составлена 1 УП для установщиков для изделий СЛ 1 раз в 3 месяца и чаще, балл - ", responseCheckNPMSL)
+	}
+	//	fmt.Println("responseCheckNPM StarLine - ", responseCheckNPMSL)
 
-	reponseVerifyProgrammInstaller := checkVerifyProgrammInstaller(reportCsv2)
-	fmt.Println("reponseVerifyProgrammInstaller", reponseVerifyProgrammInstaller)
-	reponseVerifyEquipment := checkVerifyEquipment(reportCsv2)
-	fmt.Println("reponseVerifyEquipment", reponseVerifyEquipment)
-	if reponseVerifyProgrammInstaller+reponseVerifyEquipment == 2 {
-		fmt.Println("responseVerifyInstaller - OK")
-	} else {
-		fmt.Println("responseVerifyInstaller - NOK")
+	responseCheckNPMContruct := checkCreatNPMContruct(reportCsv2, date1, date2)
+	if responseCheckNPMContruct == 1 {
+		responseCheckNPMContruct = 3
+		fmt.Println("Составлена 1 УП для установщиков для контрактных изделий 1 раз в месяц и чаще, балл - ", responseCheckNPMContruct)
+	} else if responseCheckNPMContruct != 1 {
+		responseCheckNPMContruct = 0
+		fmt.Println("Составлена 1 УП для установщиков для контрактных изделий 1 раз в месяц и чаще, балл - ", responseCheckNPMContruct)
+	}
+	//fmt.Println("responseCheckNPM Contruct - ", responseCheckNPMContruct)
+
+	responseCheckCreateSEHO := checkProgrammCreateSEHO(reportCsv2, date1, date2)
+	if responseCheckCreateSEHO == 1 {
+		responseCheckCreateSEHO = 3
+		fmt.Println("оставлена 1 УП для машины селективной пайки 1 раз в месяц и чаще, балл -", responseCheckCreateSEHO)
+	} else if responseCheckCreateSEHO != 1 {
+		responseCheckCreateSEHO = 0
+		fmt.Println("оставлена 1 УП для машины селективной пайки 1 раз в месяц и чаще, балл -", responseCheckCreateSEHO)
+	}
+	//fmt.Println("responseCheckCreateSEHO - ", responseCheckCreateSEHO)
+
+	responseCheckCreateAOIModus := checkProgrammCreateAOIModus(reportCsv2, date1, date2)
+	if responseCheckCreateAOIModus == 1 {
+		responseCheckCreateAOIModus = 3
+		fmt.Println("Составлена 1 УП для AOI Modus 1 раз в месяц и чаще, балл - ", responseCheckCreateAOIModus)
+	} else if responseCheckCreateAOIModus != 1 {
+		responseCheckCreateAOIModus = 0
+		fmt.Println("Составлена 1 УП для AOI Modus 1 раз в месяц и чаще, балл - ", responseCheckCreateAOIModus)
+	}
+	//fmt.Println("responseCheckCreateAOIModus - ", responseCheckCreateAOIModus)
+
+	responseCheckCreateAOIKohYoung := checkProgrammCreateAOIKohYoung(reportCsv2, date1, date2)
+	if responseCheckCreateAOIKohYoung == 1 {
+		responseCheckCreateAOIKohYoung = 3
+		fmt.Println("Составлена 1 УП для AOI KohYoung 1 раз в месяц и чаще, балл - ", responseCheckCreateAOIKohYoung)
+	} else if responseCheckCreateAOIKohYoung != 1 {
+		responseCheckCreateAOIKohYoung = 0
+		fmt.Println("Составлена 1 УП для AOI KohYoung 1 раз в месяц и чаще, балл - ", responseCheckCreateAOIKohYoung)
+	}
+	//fmt.Println("responseCheckCreateAOIKohYoung - ", responseCheckCreateAOIKohYoung)
+
+	responseSetupSelectivLine, timeSetupSelectivLine := checkSetupSelectivLine(reportCsv2, date1, date2)
+	sumInDurationSelectivLine, _ := time.ParseDuration(fmt.Sprintf("%ds", timeSetupSelectivLine))
+	fmt.Printf("Выполнены работы по загрузке и или настройке машины селективной пайки 22 часа в месяц и больше, балл - %d, время - [%s]\n", responseSetupSelectivLine, sumInDurationSelectivLine.String())
+	//	responseSetupSelectivLineSoldering := checkSetupSelectivLineSoldering(reportCsv2, date1, date2)
+	//	fmt.Println("responseSetupSelectivLineSoldering - ", responseSetupSelectivLineSoldering)
+	//	levelSetupSelectivLine := responseSetupSelectivLineSEHO + responseSetupSelectivLineSoldering
+	//	fmt.Println("Выполнены работы по загрузке и или настройке машины селективной пайки 22 часа в месяц и больше, баллов - ", levelSetupSelectivLine)
+
+	//////////////////////////////////////////////////////////////////////////////////////////////////////
+	reponseVerifyAOIModusTime, reponseVerifyAOIModusTimeHoure := checkVerifyAOIModusTime(reportCsv2, date1, date2)
+	sumInDuration, _ := time.ParseDuration(fmt.Sprintf("%ds", reponseVerifyAOIModusTimeHoure))
+	if reponseVerifyAOIModusTime == 1 {
+		reponseVerifyAOIModusTime = 3
+		fmt.Printf("Выполнены работы по проверке и или настройке на АОИ Modus 11 часов - OK %d, время - [%s]\n", reponseVerifyAOIModusTime, sumInDuration.String())
+	} else if reponseVerifyAOIModusTime == 0 {
+		reponseVerifyAOIModusTime = 0
+		fmt.Printf("Выполнены работы по проверке и или настройке на АОИ Modus 11 часов - NOK %d, время - [%s]\n", reponseVerifyAOIModusTime, sumInDuration.String())
+	}
+	reponseVerifyAOIModusPCB, reponseVerifyAOIModusPCBQty := checkVerifyAOIModusPCB(reportCsv2, date1, date2)
+	if reponseVerifyAOIModusPCB == 1 {
+		reponseVerifyAOIModusPCB = 3
+		fmt.Printf("Выполнены работы по проверке и или настройке более 50 заготовок - OK %d, количество -%d\n", reponseVerifyAOIModusPCB, reponseVerifyAOIModusPCBQty)
+	} else if reponseVerifyAOIModusPCB == 0 {
+		reponseVerifyAOIModusPCB = 0
+		fmt.Println("Выполнены работы по проверке и или настройке более 50 заготовок - NOK %d, количество -%d\n", reponseVerifyAOIModusPCB, reponseVerifyAOIModusPCBQty)
+	}
+	reponseVerifyAOIModus := reponseVerifyAOIModusTime + reponseVerifyAOIModusPCB
+	if reponseVerifyAOIModus == 2 {
+		reponseVerifyAOIModus = 3
+	} else if reponseVerifyAOIModus != 2 {
+		reponseVerifyAOIModus = 0
+	}
+	fmt.Println("Выполнены работы по проверке и или настройке на АОИ Modus 11 часов и более 50 заготовок, балл - ", reponseVerifyAOIModus)
+
+	//////////////////////////////////////////////////////////////////////////////////////////////////////
+	reponseReviewStationTime, reponseReviewStationHoure := checkReviewStationTime(reportCsv2, date1, date2)
+	sumInDurationReviewStation, _ := time.ParseDuration(fmt.Sprintf("%ds", reponseReviewStationHoure))
+	if reponseReviewStationTime == 1 {
+		reponseReviewStationTime = 3
+		fmt.Printf("Выполнены работы по разбраковке на ревью станции после АОИ KY 11 часов в месяц и больше - OK %d, время - [%s]\n", reponseReviewStationTime, sumInDurationReviewStation.String())
+	} else if reponseReviewStationTime == 0 {
+		reponseReviewStationTime = 0
+		fmt.Printf("Выполнены работы по разбраковке на ревью станции после АОИ KY 11 часов в месяц и больше - NOK %d, время - [%s]\n", reponseReviewStationTime, sumInDuration.String())
+	}
+	reponseReviewStationPCB, reponseReviewStationPCBQty := checkReviewStationPCB(reportCsv2, date1, date2)
+	if reponseReviewStationPCB == 1 {
+		reponseReviewStationPCB = 3
+		fmt.Printf("Выполнены работы по проверке и или настройке более 50 заготовок - OK %d, количество -%d\n", reponseReviewStationPCB, reponseReviewStationPCBQty)
+	} else if reponseReviewStationPCB == 0 {
+		reponseReviewStationPCB = 0
+		fmt.Println("Выполнены работы по проверке и или настройке более 50 заготовок - NOK %d, количество -%d\n", reponseReviewStationPCB, reponseReviewStationPCBQty)
+	}
+	reponseReviewStation := reponseReviewStationTime + reponseReviewStationPCB
+	if reponseReviewStation == 2 {
+		reponseReviewStation = 3
+	} else if reponseReviewStation != 2 {
+		reponseReviewStation = 0
+	}
+	fmt.Println("Выполнены работы по разбраковке на ревью станции после АОИ KY 11 часов в месяц и больше и более 50 заготовок, балл - ", reponseReviewStation)
+
+	/////////////////////////////////////////////////////////////////////////////////
+	reponseSetupNPM, timeSetupNPM := checkSetupNPM(reportCsv2, date1, date2)
+	sumInDurationSetupNPM, _ := time.ParseDuration(fmt.Sprintf("%ds", timeSetupNPM))
+	if reponseSetupNPM == 1 {
+		reponseSetupNPM = 3
+	} else if reponseSetupNPM != 1 {
+		reponseSetupNPM = 0
+	}
+	fmt.Printf("Выполнены работы по загрузке и или настройке установщиков 22 часа в месяц и больше, балл - %d, время - [%s]\n", reponseSetupNPM, sumInDurationSetupNPM.String())
+
+	//////////////////////////////////////////////////////////////////////////////////////////////////////
+	reponseVerifyAOIKYTime, reponseVerifyAOIKYTimeHoure := checkVerifyAOIKYTime(reportCsv2, date1, date2)
+	sumInDurationAOIKY, _ := time.ParseDuration(fmt.Sprintf("%ds", reponseVerifyAOIKYTimeHoure))
+	if reponseVerifyAOIModusTime == 1 {
+		reponseVerifyAOIModusTime = 3
+		fmt.Printf("Выполнены работы по проверке и или настройке на АОИ KY 11 часов - OK %d, время - [%s]\n", reponseVerifyAOIKYTime, sumInDurationAOIKY.String())
+	} else if reponseVerifyAOIModusTime == 0 {
+		reponseVerifyAOIModusTime = 0
+		fmt.Printf("Выполнены работы по проверке и или настройке на АОИ KY 11 часов - NOK %d, время - [%s]\n", reponseVerifyAOIKYTime, sumInDurationAOIKY.String())
+	}
+	reponseVerifyAOIKYPCB, reponseVerifyAOIKYPCBQty := checkVerifyAOIKYPCB(reportCsv2, date1, date2)
+	if reponseVerifyAOIKYPCB == 1 {
+		reponseVerifyAOIKYPCB = 3
+		fmt.Printf("Выполнены работы по проверке и или настройке более 50 заготовок - OK %d, количество -%d\n", reponseVerifyAOIKYPCB, reponseVerifyAOIKYPCBQty)
+	} else if reponseVerifyAOIKYPCB == 0 {
+		reponseVerifyAOIKYPCB = 0
+		fmt.Println("Выполнены работы по проверке и или настройке более 50 заготовок - NOK %d, количество -%d\n", reponseVerifyAOIKYPCB, reponseVerifyAOIKYPCBQty)
+	}
+	reponseVerifyAOIKY := reponseVerifyAOIKYTime + reponseVerifyAOIKYPCB
+	if reponseVerifyAOIKY == 2 {
+		reponseVerifyAOIKY = 3
+	} else if reponseVerifyAOIKY != 2 {
+		reponseVerifyAOIKY = 0
+	}
+	fmt.Println("Выполнены работы по проверке и или настройке на АОИ KY 11 часов и более 50 заготовок, балл - ", reponseVerifyAOIKY)
+
+	responseSetupTrafaretPrinter := checkSetupTrafaretPrinter(reportCsv2, date1, date2)
+	if responseSetupTrafaretPrinter >= 2 {
+		responseSetupTrafaretPrinter = 3
+		fmt.Println("Выполнены работы по загрузке и или настройке трафаретного принтера 2 раза в месяц и более, балл - ", responseSetupTrafaretPrinter)
+	} else if responseSetupTrafaretPrinter < 2 {
+		responseSetupTrafaretPrinter = 0
+		fmt.Println("Выполнены работы по загрузке и или настройке трафаретного принтера 2 раза в месяц и более, балл - ", responseSetupTrafaretPrinter)
+	}
+	//	fmt.Println("responseSetupTrafaretPrinter - ", responseSetupTrafaretPrinter)
+
+	responseTraining := checkTraining(reportCsv2, date1, date2)
+	if responseTraining >= 1 {
+		responseTraining = 3
+		fmt.Println("Проведение обучений для сотрудников 1 раз в месяц и чаще, бланк ознакомления сотрудников с подписями сдан администратору, балл -", responseTraining)
+	} else if responseTraining < 1 {
+		responseTraining = 0
+		fmt.Println("Проведение обучений для сотрудников 1 раз в месяц и чаще, бланк ознакомления сотрудников с подписями сдан администратору, балл -", responseTraining)
+	}
+	//	fmt.Println("responseTraining - ", responseTraining)
+
+	// 3 мес инвервал
+	responseWriteInstraction := checkWriteInstraction(reportCsv2, date1, date2)
+	if responseWriteInstraction >= 1 {
+		responseWriteInstraction = 3
+		fmt.Println("Составление рабочих инструкций и документов 1 раз в 3 месяца и чаще, балл - ", responseWriteInstraction)
+	} else if responseWriteInstraction < 1 {
+		responseWriteInstraction = 0
+		fmt.Println("Составление рабочих инструкций и документов 1 раз в 3 месяца и чаще, балл - ", responseWriteInstraction)
+	}
+	//	fmt.Println("responseWriteInstraction - ", responseWriteInstraction)
+
+	reponseVerifyProgrammInstaller := checkVerifyProgrammInstaller(reportCsv2, date1, date2)
+	if reponseVerifyProgrammInstaller >= 1 {
+		reponseVerifyProgrammInstaller = 3
+		fmt.Println("Выполнена проверка программы установщиков 1 раз месяц и чаще, балл - ", reponseVerifyProgrammInstaller)
+	} else if reponseVerifyProgrammInstaller < 1 {
+		reponseVerifyProgrammInstaller = 0
+		fmt.Println("Выполнена проверка программы установщиков 1 раз месяц и чаще, балл - ", reponseVerifyProgrammInstaller)
+	}
+	// fmt.Println("reponseVerifyProgrammInstaller", reponseVerifyProgrammInstaller)
+	//	reponseVerifyEquipment := checkVerifyEquipment(reportCsv2)
+	//	fmt.Println("reponseVerifyEquipment", reponseVerifyEquipment)
+	//	if reponseVerifyProgrammInstaller+reponseVerifyEquipment == 2 {
+	//		fmt.Println("responseVerifyInstaller - OK")
+	//	} else {
+	//		fmt.Println("responseVerifyInstaller - NOK")
+	//	}
+
+	reponseVerifyPCBLine := checkVerifyPCBLine(reportCsv2, date1, date2)
+	if reponseVerifyPCBLine >= 1 {
+		reponseVerifyPCBLine = 3
+		fmt.Println("Выполнена проверка первой платы после сборки установщиками, оставлен комментарий в задаче 1 раз месяц и чаще, балл - ", reponseVerifyPCBLine)
+	} else if reponseVerifyPCBLine < 1 {
+		reponseVerifyPCBLine = 0
+		fmt.Println("Выполнена проверка первой платы после сборки установщиками, оставлен комментарий в задаче 1 раз месяц и чаще, балл - ", reponseVerifyPCBLine)
 	}
 
-	reponseVerifyPCBLine := checkVerifyPCBLine(reportCsv2)
-	fmt.Println("reponseVerifyPCBLine - ", reponseVerifyPCBLine)
+	//fmt.Println("reponseVerifyPCBLine - ", reponseVerifyPCBLine)
 
-	responseVerifyPCBSolder := checkVerifyPCBSolder(reportCsv2)
-	fmt.Println("responseVerifyPCBSolder - ", responseVerifyPCBSolder)
+	responseVerifyPCBSolder := checkVerifyPCBSolder(reportCsv2, date1, date2)
+	if responseVerifyPCBSolder >= 1 {
+		responseVerifyPCBSolder = 3
+		fmt.Println("Выполнена проверка первой спаянной платы после селективной пайки, оставлен комментарий в задаче 1 раз месяц и чаще, балл - ", responseVerifyPCBSolder)
+	} else if responseVerifyPCBSolder < 1 {
+		responseVerifyPCBSolder = 0
+		fmt.Println("Выполнена проверка первой спаянной платы после селективной пайки, оставлен комментарий в задаче 1 раз месяц и чаще, балл - ", responseVerifyPCBSolder)
+	}
 
-	responseICT := checkICT(reportCsv2)
-	fmt.Println("responseICT - ", responseICT)
+	//	fmt.Println("responseVerifyPCBSolder - ", responseVerifyPCBSolder)
+
+	responseICT := checkICT(reportCsv2, date1, date2)
+	if responseICT >= 1 {
+		responseICT = 3
+		fmt.Println("Выполнена проверка первой платы после оплавления на ICT, сотавлен комментарий в задаче 1 раз месяц и чаще, балл - ", responseICT)
+	} else if responseICT < 1 {
+		responseICT = 0
+		fmt.Println("Выполнена проверка первой платы после оплавления на ICT, сотавлен комментарий в задаче 1 раз месяц и чаще, балл - ", responseICT)
+	}
+	//
+	// fmt.Println("responseICT - ", responseICT)
+
+	reponseDebugAOI := checkDebugAOI(reportCsv2, date1, date2)
+	if reponseDebugAOI == 1 {
+		reponseDebugAOI = 3
+	} else if reponseDebugAOI != 1 {
+		reponseDebugAOI = 0
+	}
+	fmt.Println("Выполнена отладка программы АОИ перед сборкой 1 раз в месяц и чаще, балл - ", reponseDebugAOI)
 
 	d := time.Date(2020, 11, 3, 12, 30, 0, 0, time.UTC)
 	//10.1.2020 19:48:34
@@ -288,23 +502,34 @@ func readfile(name string) [][]string {
 	return CSVdata
 }
 
-func checkCreatNPMStarLine(rows [][]string) string {
+func checkCreatNPMStarLine(rows [][]string, date1, date2 string) int {
 	counterNPM := 0
-	var result string
+	layoutDate := "02.01.2006"
+
+	dateFrom, _ := time.Parse(layoutDate, date1)
+	fmt.Println("Дата от -:", dateFrom.Format(layoutDate))
+
+	dateTo, _ := time.Parse(layoutDate, date2)
+	fmt.Println("Дата до -:", dateTo.Format(layoutDate))
+	var result int
 	for _, each := range rows {
-		if each[18] == operator {
-			if each[4] == createNPM && each[7] == StarLine {
-				counterNPM++
-				//	fmt.Println(counterNPM)
-				if counterNPM >= 1 {
-					//	fmt.Println("OK")
-					result := "OK"
-					return result
-					//	return resalt
-				} else if counterNPM < 1 {
-					//	fmt.Println("NOK")
-					result := "NOK"
-					return result
+		dateEach, _ := time.Parse(layoutDate, each[15])
+
+		if dateEach.After(dateFrom.AddDate(0, 0, -1)) && dateEach.Before(dateTo.AddDate(0, 0, +1)) {
+			if each[18] == operator {
+				if each[4] == createNPM && each[7] == StarLine {
+					counterNPM++
+					//	fmt.Println(counterNPM)
+					if counterNPM >= 1 {
+						//	fmt.Println("OK")
+						result := 1
+						return result
+						//	return resalt
+					} else if counterNPM < 1 {
+						//	fmt.Println("NOK")
+						result := 0
+						return result
+					}
 				}
 			}
 		}
@@ -312,23 +537,34 @@ func checkCreatNPMStarLine(rows [][]string) string {
 	return result
 }
 
-func checkCreatNPMContruct(rows [][]string) string {
+func checkCreatNPMContruct(rows [][]string, date1, date2 string) int {
 	counterNPM := 0
-	var result string
+	layoutDate := "02.01.2006"
+
+	dateFrom, _ := time.Parse(layoutDate, date1)
+	fmt.Println("Дата от -:", dateFrom.Format(layoutDate))
+
+	dateTo, _ := time.Parse(layoutDate, date2)
+	fmt.Println("Дата до -:", dateTo.Format(layoutDate))
+	var result int
 	for _, each := range rows {
-		if each[18] == operator {
-			if each[4] == createNPM && each[7] == Contruct {
-				counterNPM++
-				//	fmt.Println(counterNPM)
-				if counterNPM >= 1 {
-					//	fmt.Println("OK")
-					result := "OK"
-					return result
-					//	return resalt
-				} else if counterNPM < 1 {
-					//	fmt.Println("NOK")
-					result := "NOK"
-					return result
+		dateEach, _ := time.Parse(layoutDate, each[15])
+
+		if dateEach.After(dateFrom.AddDate(0, 0, -1)) && dateEach.Before(dateTo.AddDate(0, 0, +1)) {
+			if each[18] == operator {
+				if each[4] == createNPM && each[7] == Contruct {
+					counterNPM++
+					//	fmt.Println(counterNPM)
+					if counterNPM >= 1 {
+						//	fmt.Println("OK")
+						result := 1
+						return result
+						//	return resalt
+					} else if counterNPM < 1 {
+						//	fmt.Println("NOK")
+						result := 0
+						return result
+					}
 				}
 			}
 		}
@@ -336,23 +572,34 @@ func checkCreatNPMContruct(rows [][]string) string {
 	return result
 }
 
-func checkProgrammCreateSEHO(rows [][]string) string {
+func checkProgrammCreateSEHO(rows [][]string, date1, date2 string) int {
 	counterCreateSEHO := 0
-	var result string
+	layoutDate := "02.01.2006"
+
+	dateFrom, _ := time.Parse(layoutDate, date1)
+	fmt.Println("Дата от -:", dateFrom.Format(layoutDate))
+
+	dateTo, _ := time.Parse(layoutDate, date2)
+	fmt.Println("Дата до -:", dateTo.Format(layoutDate))
+	var result int
 	for _, each := range rows {
 		if each[18] == operator {
-			if each[5] == ProgrammCreateSEHOPRI || each[5] == ProgrammCreateSEHOSEC {
-				counterCreateSEHO++
-				//	fmt.Println(counterNPM)
-				if counterCreateSEHO >= 1 {
-					//	fmt.Println("OK")
-					result := "OK"
-					return result
-					//	return resalt
-				} else if counterCreateSEHO < 1 {
-					//	fmt.Println("NOK")
-					result := "NOK"
-					return result
+			dateEach, _ := time.Parse(layoutDate, each[15])
+
+			if dateEach.After(dateFrom.AddDate(0, 0, -1)) && dateEach.Before(dateTo.AddDate(0, 0, +1)) {
+				if each[5] == ProgrammCreateSEHOPRI || each[5] == ProgrammCreateSEHOSEC {
+					counterCreateSEHO++
+					//	fmt.Println(counterNPM)
+					if counterCreateSEHO >= 1 {
+						//	fmt.Println("OK")
+						result := 1
+						return result
+						//	return resalt
+					} else if counterCreateSEHO < 1 {
+						//	fmt.Println("NOK")
+						result := 0
+						return result
+					}
 				}
 			}
 		}
@@ -361,23 +608,35 @@ func checkProgrammCreateSEHO(rows [][]string) string {
 }
 
 //CreateAOIModus
-func checkProgrammCreateAOIModus(rows [][]string) string {
+func checkProgrammCreateAOIModus(rows [][]string, date1, date2 string) int {
 	counterCreateAOIModus := 0
-	var result string
+	layoutDate := "02.01.2006"
+
+	dateFrom, _ := time.Parse(layoutDate, date1)
+	fmt.Println("Дата от -:", dateFrom.Format(layoutDate))
+
+	dateTo, _ := time.Parse(layoutDate, date2)
+	fmt.Println("Дата до -:", dateTo.Format(layoutDate))
+	var result int
 	for _, each := range rows {
-		if each[18] == operator {
-			if each[5] == ProgrammCreateAOIModusPRI || each[5] == ProgrammCreateAOIModusSEC && each[3] == "THT" {
-				counterCreateAOIModus++
-				//	fmt.Println(counterNPM)
-				if counterCreateAOIModus >= 1 {
-					//	fmt.Println("OK")
-					result := "OK"
-					return result
-					//	return resalt
-				} else if counterCreateAOIModus < 1 {
-					//	fmt.Println("NOK")
-					result := "NOK"
-					return result
+		dateEach, _ := time.Parse(layoutDate, each[15])
+
+		if dateEach.After(dateFrom.AddDate(0, 0, -1)) && dateEach.Before(dateTo.AddDate(0, 0, +1)) {
+			if each[18] == operator {
+
+				if each[5] == ProgrammCreateAOIModusPRI || each[5] == ProgrammCreateAOIModusSEC && each[3] == "THT" {
+					counterCreateAOIModus++
+					//	fmt.Println(counterNPM)
+					if counterCreateAOIModus >= 1 {
+						//	fmt.Println("OK")
+						result := 1
+						return result
+						//	return resalt
+					} else if counterCreateAOIModus < 1 {
+						//	fmt.Println("NOK")
+						result := 0
+						return result
+					}
 				}
 			}
 		}
@@ -386,23 +645,34 @@ func checkProgrammCreateAOIModus(rows [][]string) string {
 }
 
 //AOIKohYoung
-func checkProgrammCreateAOIKohYoung(rows [][]string) string {
+func checkProgrammCreateAOIKohYoung(rows [][]string, date1, date2 string) int {
 	counterCreateAOIKohYoung := 0
-	var result string
+	layoutDate := "02.01.2006"
+
+	dateFrom, _ := time.Parse(layoutDate, date1)
+	fmt.Println("Дата от -:", dateFrom.Format(layoutDate))
+
+	dateTo, _ := time.Parse(layoutDate, date2)
+	fmt.Println("Дата до -:", dateTo.Format(layoutDate))
+	var result int
 	for _, each := range rows {
-		if each[18] == operator {
-			if each[4] == ProgrammCreateAOIKohYoungPRI || each[4] == ProgrammCreateAOIKohYoungSEC && each[3] == "SMT" {
-				counterCreateAOIKohYoung++
-				//	fmt.Println(counterNPM)
-				if counterCreateAOIKohYoung >= 1 {
-					//	fmt.Println("OK")
-					result := "OK"
-					return result
-					//	return resalt
-				} else if counterCreateAOIKohYoung < 1 {
-					//	fmt.Println("NOK")
-					result := "NOK"
-					return result
+		dateEach, _ := time.Parse(layoutDate, each[15])
+
+		if dateEach.After(dateFrom.AddDate(0, 0, -1)) && dateEach.Before(dateTo.AddDate(0, 0, +1)) {
+			if each[18] == operator {
+				if each[4] == ProgrammCreateAOIKohYoungPRI || each[4] == ProgrammCreateAOIKohYoungSEC && each[3] == "SMT" {
+					counterCreateAOIKohYoung++
+					//	fmt.Println(counterNPM)
+					if counterCreateAOIKohYoung >= 1 {
+						//	fmt.Println("OK")
+						result := 1
+						return result
+						//	return resalt
+					} else if counterCreateAOIKohYoung < 1 {
+						//	fmt.Println("NOK")
+						result := 0
+						return result
+					}
 				}
 			}
 		}
@@ -412,7 +682,198 @@ func checkProgrammCreateAOIKohYoung(rows [][]string) string {
 
 // SetupSelectivLine
 // Выполнены работы по загрузке и\или настройке машины селективной пайки 22 часа в месяц и больше
-func checkSetupSelectivLineSEHO(rows [][]string, date1, date2 string) int {
+// Настройка SEHO
+func checkSetupSelectivLine(rows [][]string, date1, date2 string) (int, int) {
+	//	counterCreateAOIKohYoung := 0
+	//layout := "3:04:05"
+	//	layoutPM := "3:04:05 PM"
+	//	t0, _ := time.Parse(layout, "00:00:00")
+	//	var sum time.Time
+	layoutDate := "02.01.2006"
+	//	layoutDate2 := "25.10.2006"
+	//	date1 := "01.10.2020"
+	dateFrom, _ := time.Parse(layoutDate, date1)
+	fmt.Println("Дата от -:", dateFrom.Format(layoutDate))
+	//	dateFromV := dateFrom.Format(layoutDate)
+
+	dateTo, _ := time.Parse(layoutDate, date2)
+	fmt.Println("Дата до -:", dateTo.Format(layoutDate))
+	//	dateToV := dateTo.Format(layoutDate)
+
+	var result int
+	var sumInSeconds int
+	comparedDuration22, _ := time.ParseDuration("22h")
+	comparedDurations22Sec := int(comparedDuration22.Seconds())
+	/*	comparedDuration14, _ := time.ParseDuration("14h")
+		comparedDurations14Sec := int(comparedDuration14.Seconds())
+		comparedDuration21, _ := time.ParseDuration("21h")
+		comparedDurations21Sec := int(comparedDuration21.Seconds())
+		comparedDuration28, _ := time.ParseDuration("28h")
+		comparedDurations28Sec := int(comparedDuration28.Seconds())
+		comparedDuration35, _ := time.ParseDuration("35h")
+		comparedDurations35Sec := int(comparedDuration35.Seconds())
+		comparedDuration42, _ := time.ParseDuration("42h")
+		comparedDurations42Sec := int(comparedDuration42.Seconds())
+		comparedDuration49, _ := time.ParseDuration("49h")
+		comparedDurations49Sec := int(comparedDuration49.Seconds())
+		comparedDuration56, _ := time.ParseDuration("56h")
+		comparedDurations56Sec := int(comparedDuration56.Seconds())
+		comparedDuration63, _ := time.ParseDuration("63h")
+		comparedDurations63Sec := int(comparedDuration63.Seconds())
+		comparedDuration70, _ := time.ParseDuration("70h")
+		comparedDurations70Sec := int(comparedDuration70.Seconds())
+		comparedDuration77, _ := time.ParseDuration("77h")
+		comparedDurations77Sec := int(comparedDuration77.Seconds())
+		comparedDuration84, _ := time.ParseDuration("84h")
+		comparedDurations84Sec := int(comparedDuration84.Seconds())
+		comparedDuration91, _ := time.ParseDuration("91h")
+		comparedDurations91Sec := int(comparedDuration91.Seconds())
+		comparedDuration98, _ := time.ParseDuration("98h")
+		comparedDurations98Sec := int(comparedDuration98.Seconds())
+		comparedDuration105, _ := time.ParseDuration("105h")
+		comparedDurations105Sec := int(comparedDuration105.Seconds())
+		comparedDuration112, _ := time.ParseDuration("112h")
+		comparedDurations112Sec := int(comparedDuration112.Seconds()) */
+	for _, each := range rows {
+		dateEach, _ := time.Parse(layoutDate, each[15])
+		//	dateEachF := dateEach.Format(layoutDate)
+		//if dateEachF >= dateFromV && dateEachF <= dateToV {
+		if dateEach.After(dateFrom.AddDate(0, 0, -1)) && dateEach.Before(dateTo.AddDate(0, 0, +1)) {
+			if each[18] == operator {
+				if each[17] == SetupSelectivLineSEHOPRI || each[17] == SetupSelectivLineSEHOSEC || each[17] == SetupSelectivLineSolderingPRI || each[17] == SetupSelectivLineSolderingSEC && each[3] == "THT" {
+					//	t, _ := time.Parse(layout, each[16])
+					//	sum = sum.Add(t.Sub(t0))
+					//	fmt.Println("Time -", t)
+
+					pt := strings.Split(each[16], ":") // parsed time by ":"
+					if len(pt) != 3 {
+						log.Fatalf("input format mismatch.\nExpecting H:M:S\nHave: %v", pt)
+					}
+
+					h, m, s := pt[0], pt[1], pt[2] // hours, minutes, seconds
+					formattedDuration := fmt.Sprintf("%sh%sm%ss", h, m, s)
+
+					duration, err := time.ParseDuration(formattedDuration)
+					if err != nil {
+						log.Fatalf("Failed to parse duration: %v", formattedDuration)
+					}
+					sumInSeconds += int(duration.Seconds())
+
+				}
+			}
+		}
+	}
+
+	sumInDuration, _ := time.ParseDuration(fmt.Sprintf("%ds", sumInSeconds))
+	if sumInSeconds >= comparedDurations22Sec {
+		fmt.Printf("Sum [%s] < compareDuration22 [%s]\n", sumInDuration.String(), comparedDuration22.String())
+		result := 3
+		return result, sumInSeconds
+	} else if sumInSeconds <= comparedDurations22Sec {
+		fmt.Printf("Sum [%s] < compareDuration22 [%s]\n", sumInDuration.String(), comparedDuration22.String())
+		result := 0
+		return result, sumInSeconds
+	} /*else if sumInSeconds <= comparedDurations21Sec {
+		fmt.Printf("Sum [%s] < compareDuration21 [%s]\n", sumInDuration.String(), comparedDuration21.String())
+		result := 2
+		return result
+	} else if sumInSeconds <= comparedDurations28Sec {
+		fmt.Printf("Sum [%s] < compareDuration28 [%s]\n", sumInDuration.String(), comparedDuration28.String())
+		result := 3
+		return result
+	} else if sumInSeconds <= comparedDurations35Sec {
+		fmt.Printf("Sum [%s] < compareDuration35 [%s]\n", sumInDuration.String(), comparedDuration35.String())
+		result := 4
+		return result
+	} else if sumInSeconds <= comparedDurations42Sec {
+		fmt.Printf("Sum [%s] < compareDuration42 [%s]\n", sumInDuration.String(), comparedDuration42.String())
+		result := 5
+		return result
+	} else if sumInSeconds <= comparedDurations49Sec {
+		fmt.Printf("Sum [%s] < compareDuration49 [%s]\n", sumInDuration.String(), comparedDuration49.String())
+		result := 6
+		return result
+	} else if sumInSeconds <= comparedDurations56Sec {
+		fmt.Printf("Sum [%s] < compareDuration56 [%s]\n", sumInDuration.String(), comparedDuration56.String())
+		result := 7
+		return result
+	} else if sumInSeconds <= comparedDurations63Sec {
+		fmt.Printf("Sum [%s] < compareDuration63 [%s]\n", sumInDuration.String(), comparedDuration63.String())
+		result := 8
+		return result
+	} else if sumInSeconds <= comparedDurations70Sec {
+		fmt.Printf("Sum [%s] < compareDuration70 [%s]\n", sumInDuration.String(), comparedDuration70.String())
+		result := 9
+		return result
+	} else if sumInSeconds <= comparedDurations77Sec {
+		fmt.Printf("Sum [%s] < compareDuration77 [%s]\n", sumInDuration.String(), comparedDuration77.String())
+		result := 10
+		return result
+	} else if sumInSeconds <= comparedDurations84Sec {
+		fmt.Printf("Sum [%s] < compareDuration84 [%s]\n", sumInDuration.String(), comparedDuration84.String())
+		result := 11
+		return result
+	} else if sumInSeconds <= comparedDurations91Sec {
+		fmt.Printf("Sum [%s] < compareDuration91 [%s]\n", sumInDuration.String(), comparedDuration91.String())
+		result := 12
+		return result
+	} else if sumInSeconds <= comparedDurations98Sec {
+		fmt.Printf("Sum [%s] < compareDuration98 [%s]\n", sumInDuration.String(), comparedDuration98.String())
+		result := 13
+		return result
+	} else if sumInSeconds <= comparedDurations105Sec {
+		fmt.Printf("Sum [%s] < compareDuration105 [%s]\n", sumInDuration.String(), comparedDuration105.String())
+		result := 14
+		return result
+	} else if sumInSeconds <= comparedDurations112Sec {
+		fmt.Printf("Sum [%s] < compareDuration112 [%s]\n", sumInDuration.String(), comparedDuration112.String())
+		result := 15
+		return result
+	} */
+
+	/*
+		fmt.Println("Sum time - ", sum)
+
+		checkTimeL0 := "07:00:00 AM"
+		tcheckTimeL0, _ := time.Parse(layoutPM, checkTimeL0)
+		fmt.Printf("tcheckTimeL1: %v\n", tcheckTimeL0)
+		checkTimeL1 := "02:00:00 PM"
+		tcheckTimeL1, _ := time.Parse(layoutPM, checkTimeL1)
+		fmt.Printf("tcheckTimeL1: %v\n", tcheckTimeL1)
+		checkTimeL2 := "09:00:00 PM"
+		tcheckTimeL2, _ := time.Parse(layoutPM, checkTimeL2)
+		fmt.Printf("tcheckTimeL2: %v\n", tcheckTimeL2)
+		checkTimeL3 := "02:00:00 PM"
+		tcheckTimeL3, _ := time.Parse(layoutPM, checkTimeL3)
+		fmt.Printf("tcheckTimeL3: %v\n", tcheckTimeL3)
+
+		level0 := tcheckTimeL0.Before(sum)
+		fmt.Println("level0 is:", level0)
+		level1 := tcheckTimeL0.After(sum) && tcheckTimeL1.Before(sum)
+		fmt.Println("level1 is:", level1)
+		level2 := tcheckTimeL1.After(sum) && tcheckTimeL2.Before(sum)
+		fmt.Println("level2 is:", level2)
+	*/
+
+	/*
+		if level == true {
+			fmt.Println("OK")
+			result := "OK"
+			return result
+		} else {
+			fmt.Println("NOK")
+			result := "NOK"
+			return result
+		}
+	*/
+	return result, sumInSeconds
+}
+
+/*
+// Выполнены работы по загрузке и\или настройке машины селективной пайки 22 часа в месяц и больше
+// Пайка компонентов
+// SetupSelectivLineSoldering
+func checkSetupSelectivLineSoldering(rows [][]string, date1, date2 string) int {
 	//	counterCreateAOIKohYoung := 0
 	//layout := "3:04:05"
 	//	layoutPM := "3:04:05 PM"
@@ -469,7 +930,7 @@ func checkSetupSelectivLineSEHO(rows [][]string, date1, date2 string) int {
 		//if dateEachF >= dateFromV && dateEachF <= dateToV {
 		if dateEach.After(dateFrom.AddDate(0, 0, -1)) && dateEach.Before(dateTo.AddDate(0, 0, +1)) {
 			if each[18] == operator {
-				if each[17] == SetupSelectivLineSEHOPRI || each[17] == SetupSelectivLineSEHOSEC && each[3] == "THT" {
+				if each[17] == SetupSelectivLineSolderingPRI || each[17] == SetupSelectivLineSolderingSEC && each[3] == "THT" {
 					//	t, _ := time.Parse(layout, each[16])
 					//	sum = sum.Add(t.Sub(t0))
 					//	fmt.Println("Time -", t)
@@ -560,64 +1021,577 @@ func checkSetupSelectivLineSEHO(rows [][]string, date1, date2 string) int {
 		return result
 	}
 
-	/*
-		fmt.Println("Sum time - ", sum)
-
-		checkTimeL0 := "07:00:00 AM"
-		tcheckTimeL0, _ := time.Parse(layoutPM, checkTimeL0)
-		fmt.Printf("tcheckTimeL1: %v\n", tcheckTimeL0)
-		checkTimeL1 := "02:00:00 PM"
-		tcheckTimeL1, _ := time.Parse(layoutPM, checkTimeL1)
-		fmt.Printf("tcheckTimeL1: %v\n", tcheckTimeL1)
-		checkTimeL2 := "09:00:00 PM"
-		tcheckTimeL2, _ := time.Parse(layoutPM, checkTimeL2)
-		fmt.Printf("tcheckTimeL2: %v\n", tcheckTimeL2)
-		checkTimeL3 := "02:00:00 PM"
-		tcheckTimeL3, _ := time.Parse(layoutPM, checkTimeL3)
-		fmt.Printf("tcheckTimeL3: %v\n", tcheckTimeL3)
-
-		level0 := tcheckTimeL0.Before(sum)
-		fmt.Println("level0 is:", level0)
-		level1 := tcheckTimeL0.After(sum) && tcheckTimeL1.Before(sum)
-		fmt.Println("level1 is:", level1)
-		level2 := tcheckTimeL1.After(sum) && tcheckTimeL2.Before(sum)
-		fmt.Println("level2 is:", level2)
-	*/
-
-	/*
-		if level == true {
-			fmt.Println("OK")
-			result := "OK"
-			return result
-		} else {
-			fmt.Println("NOK")
-			result := "NOK"
-			return result
-		}
-	*/
 	return result
+}
+*/
+
+// Выполнены работы по проверке и\или настройке на АОИ Modus 11 часов и более 50 заготовок
+// VerifyAOI
+// Выполнены работы по проверке и\или настройке на АОИ Modus 11 часов
+func checkVerifyAOIModusTime(rows [][]string, date1, date2 string) (int, int) {
+	//	counterCreateAOIKohYoung := 0
+	//layout := "3:04:05"
+	//	layoutPM := "3:04:05 PM"
+	//	t0, _ := time.Parse(layout, "00:00:00")
+	//	var sum time.Time
+	layoutDate := "02.01.2006"
+	//	layoutDate2 := "25.10.2006"
+	//	date1 := "01.10.2020"
+	dateFrom, _ := time.Parse(layoutDate, date1)
+	fmt.Println("Дата от -:", dateFrom.Format(layoutDate))
+	//	dateFromV := dateFrom.Format(layoutDate)
+
+	dateTo, _ := time.Parse(layoutDate, date2)
+	fmt.Println("Дата до -:", dateTo.Format(layoutDate))
+	//	dateToV := dateTo.Format(layoutDate)
+
+	var result int
+
+	var sumInSeconds int
+	comparedDuration11, _ := time.ParseDuration("11h")
+	comparedDurations11Sec := int(comparedDuration11.Seconds())
+	/*	comparedDuration7, _ := time.ParseDuration("7h")
+		comparedDurations7Sec := int(comparedDuration7.Seconds())
+		comparedDuration10_5, _ := time.ParseDuration("10h:30m")
+		comparedDurations10_5Sec := int(comparedDuration10_5.Seconds())
+		comparedDuration14, _ := time.ParseDuration("14h")
+		comparedDurations14Sec := int(comparedDuration14.Seconds())
+		comparedDuration17_5, _ := time.ParseDuration("17h:30m")
+		comparedDurations17_5Sec := int(comparedDuration17_5.Seconds())
+		comparedDuration21, _ := time.ParseDuration("21h")
+		comparedDurations21Sec := int(comparedDuration21.Seconds())
+		comparedDuration24_5, _ := time.ParseDuration("24h:30m")
+		comparedDurations24_5Sec := int(comparedDuration24_5.Seconds())
+		comparedDuration28, _ := time.ParseDuration("28h")
+		comparedDurations28Sec := int(comparedDuration28.Seconds())
+		comparedDuration31_5, _ := time.ParseDuration("31h:30m")
+		comparedDurations31_5Sec := int(comparedDuration31_5.Seconds())
+		comparedDuration35, _ := time.ParseDuration("35h")
+		comparedDurations35Sec := int(comparedDuration35.Seconds())
+		comparedDuration38_5, _ := time.ParseDuration("38h:30m")
+		comparedDurations38_5Sec := int(comparedDuration38_5.Seconds())
+		comparedDuration42, _ := time.ParseDuration("42h")
+		comparedDurations42Sec := int(comparedDuration42.Seconds())*/
+	//	comparedDuration91, _ := time.ParseDuration("91h")
+	//	comparedDurations91Sec := int(comparedDuration91.Seconds())
+	//	comparedDuration98, _ := time.ParseDuration("98h")
+	//	comparedDurations98Sec := int(comparedDuration98.Seconds())
+	//	comparedDuration105, _ := time.ParseDuration("105h")
+	//	comparedDurations105Sec := int(comparedDuration105.Seconds())
+	//	comparedDuration112, _ := time.ParseDuration("112h")
+	//	comparedDurations112Sec := int(comparedDuration112.Seconds())
+	for _, each := range rows {
+		dateEach, _ := time.Parse(layoutDate, each[15])
+		//	dateEachF := dateEach.Format(layoutDate)
+		//if dateEachF >= dateFromV && dateEachF <= dateToV {
+		if dateEach.After(dateFrom.AddDate(0, 0, -1)) && dateEach.Before(dateTo.AddDate(0, 0, +1)) {
+			if each[18] == operator {
+				if each[17] == VerifyAOIPRI || each[17] == VerifyAOISEC && each[3] == "THT" {
+					//	t, _ := time.Parse(layout, each[16])
+					//	sum = sum.Add(t.Sub(t0))
+					//	fmt.Println("Time -", t)
+
+					pt := strings.Split(each[16], ":") // parsed time by ":"
+					if len(pt) != 3 {
+						log.Fatalf("input format mismatch.\nExpecting H:M:S\nHave: %v", pt)
+					}
+
+					h, m, s := pt[0], pt[1], pt[2] // hours, minutes, seconds
+					formattedDuration := fmt.Sprintf("%sh%sm%ss", h, m, s)
+
+					duration, err := time.ParseDuration(formattedDuration)
+					if err != nil {
+						log.Fatalf("Failed to parse duration: %v", formattedDuration)
+					}
+					sumInSeconds += int(duration.Seconds())
+
+				}
+			}
+		}
+	}
+
+	sumInDuration, _ := time.ParseDuration(fmt.Sprintf("%ds", sumInSeconds))
+	if sumInSeconds >= comparedDurations11Sec {
+		fmt.Printf("Sum [%s] >= compareDuration11 [%s]\n", sumInDuration.String(), comparedDuration11.String())
+		result := 1
+		return result, sumInSeconds
+	} else if sumInSeconds <= comparedDurations11Sec {
+		fmt.Printf("Sum [%s] =< compareDuration11 [%s]\n", sumInDuration.String(), comparedDuration11.String())
+		result := 0
+		return result, sumInSeconds
+	} /*else if sumInSeconds <= comparedDurations10_5Sec {
+		fmt.Printf("Sum [%s] < compareDuration10,5 [%s]\n", sumInDuration.String(), comparedDuration10_5.String())
+		result := 2
+		return result
+	} else if sumInSeconds <= comparedDurations14Sec {
+		fmt.Printf("Sum [%s] < compareDuration14 [%s]\n", sumInDuration.String(), comparedDuration14.String())
+		result := 3
+		return result
+	} else if sumInSeconds <= comparedDurations17_5Sec {
+		fmt.Printf("Sum [%s] < compareDuration17,5 [%s]\n", sumInDuration.String(), comparedDuration17_5.String())
+		result := 4
+		return result
+	} else if sumInSeconds <= comparedDurations21Sec {
+		fmt.Printf("Sum [%s] < compareDuration21 [%s]\n", sumInDuration.String(), comparedDuration21.String())
+		result := 5
+		return result
+	} else if sumInSeconds <= comparedDurations24_5Sec {
+		fmt.Printf("Sum [%s] < compareDuration24,5 [%s]\n", sumInDuration.String(), comparedDuration24_5.String())
+		result := 6
+		return result
+	} else if sumInSeconds <= comparedDurations28Sec {
+		fmt.Printf("Sum [%s] < compareDuration28 [%s]\n", sumInDuration.String(), comparedDuration28.String())
+		result := 7
+		return result
+	} else if sumInSeconds <= comparedDurations31_5Sec {
+		fmt.Printf("Sum [%s] < compareDuration31,5 [%s]\n", sumInDuration.String(), comparedDuration31_5.String())
+		result := 8
+		return result
+	} else if sumInSeconds <= comparedDurations35Sec {
+		fmt.Printf("Sum [%s] < compareDuration35 [%s]\n", sumInDuration.String(), comparedDuration35.String())
+		result := 9
+		return result
+	} else if sumInSeconds <= comparedDurations38_5Sec {
+		fmt.Printf("Sum [%s] < compareDuration38,5 [%s]\n", sumInDuration.String(), comparedDuration38_5.String())
+		result := 10
+		return result
+	} else if sumInSeconds <= comparedDurations42Sec {
+		fmt.Printf("Sum [%s] < compareDuration42 [%s]\n", sumInDuration.String(), comparedDuration42.String())
+		result := 11
+		return result
+	} else if sumInSeconds <= comparedDurations91Sec {
+		fmt.Printf("Sum [%s] < compareDuration91 [%s]\n", sumInDuration.String(), comparedDuration91.String())
+		result := 12
+		return result
+	} else if sumInSeconds <= comparedDurations98Sec {
+		fmt.Printf("Sum [%s] < compareDuration98 [%s]\n", sumInDuration.String(), comparedDuration98.String())
+		result := 13
+		return result
+	} else if sumInSeconds <= comparedDurations105Sec {
+		fmt.Printf("Sum [%s] < compareDuration105 [%s]\n", sumInDuration.String(), comparedDuration105.String())
+		result := 14
+		return result
+	} else if sumInSeconds <= comparedDurations112Sec {
+		fmt.Printf("Sum [%s] < compareDuration112 [%s]\n", sumInDuration.String(), comparedDuration112.String())
+		result := 15
+		return result
+	} */
+
+	return result, sumInSeconds
+}
+
+// Выполнены работы по проверке и\или настройке более 50 заготовок
+func checkVerifyAOIModusPCB(rows [][]string, date1, date2 string) (int, int) {
+	//	counterCreateAOIKohYoung := 0
+	//layout := "3:04:05"
+	//	layoutPM := "3:04:05 PM"
+	//	t0, _ := time.Parse(layout, "00:00:00")
+	//	var sum time.Time
+	layoutDate := "02.01.2006"
+	//	layoutDate2 := "25.10.2006"
+	//	date1 := "01.10.2020"
+	dateFrom, _ := time.Parse(layoutDate, date1)
+	fmt.Println("Дата от -:", dateFrom.Format(layoutDate))
+	//	dateFromV := dateFrom.Format(layoutDate)
+
+	dateTo, _ := time.Parse(layoutDate, date2)
+	fmt.Println("Дата до -:", dateTo.Format(layoutDate))
+	//	dateToV := dateTo.Format(layoutDate)
+
+	var result int
+	var sumpcbG int
+	var sumpcbNG int
+
+	for _, each := range rows {
+		dateEach, _ := time.Parse(layoutDate, each[15])
+		//	dateEachF := dateEach.Format(layoutDate)
+		//if dateEachF >= dateFromV && dateEachF <= dateToV {
+		if dateEach.After(dateFrom.AddDate(0, 0, -1)) && dateEach.Before(dateTo.AddDate(0, 0, +1)) {
+			if each[18] == operator {
+				if each[17] == VerifyAOIPRI || each[17] == VerifyAOISEC && each[3] == "THT" {
+					//	t, _ := time.Parse(layout, each[16])
+					//	sum = sum.Add(t.Sub(t0))
+					//	fmt.Println("Time -", t)
+					pcbG, _ := strconv.Atoi(each[20])
+					sumpcbG += pcbG
+
+					pcbNG, _ := strconv.Atoi(each[21])
+					sumpcbNG += pcbNG
+
+				}
+			}
+		}
+	}
+	sumpcbAll := sumpcbG + sumpcbNG
+	fmt.Println("Сумма плат -", sumpcbAll)
+
+	if sumpcbAll >= 50 {
+
+		result := 1
+		return result, sumpcbAll
+	} else if sumpcbAll <= 50 {
+
+		result := 0
+		return result, sumpcbAll
+	}
+	return result, sumpcbAll
+}
+
+// Выполнены работы по проверке и\или настройке на АОИ KY 11 часов в месяц и больше (более 50 заготовок)
+// VerifyAOIKY    = "Проверка плат на АОИ"
+// VerifyAOIKYPRI = "Проверка плат на АОИ Prim"
+// VerifyAOIKYSEC = "Проверка плат на АОИ Sec"
+func checkVerifyAOIKYTime(rows [][]string, date1, date2 string) (int, int) {
+	//	counterCreateAOIKohYoung := 0
+	//layout := "3:04:05"
+	//	layoutPM := "3:04:05 PM"
+	//	t0, _ := time.Parse(layout, "00:00:00")
+	//	var sum time.Time
+	layoutDate := "02.01.2006"
+	//	layoutDate2 := "25.10.2006"
+	//	date1 := "01.10.2020"
+	dateFrom, _ := time.Parse(layoutDate, date1)
+	fmt.Println("Дата от -:", dateFrom.Format(layoutDate))
+	//	dateFromV := dateFrom.Format(layoutDate)
+
+	dateTo, _ := time.Parse(layoutDate, date2)
+	fmt.Println("Дата до -:", dateTo.Format(layoutDate))
+	//	dateToV := dateTo.Format(layoutDate)
+
+	var result int
+
+	var sumInSeconds int
+	comparedDuration11, _ := time.ParseDuration("11h")
+	comparedDurations11Sec := int(comparedDuration11.Seconds())
+
+	for _, each := range rows {
+		dateEach, _ := time.Parse(layoutDate, each[15])
+		//	dateEachF := dateEach.Format(layoutDate)
+		//if dateEachF >= dateFromV && dateEachF <= dateToV {
+		if dateEach.After(dateFrom.AddDate(0, 0, -1)) && dateEach.Before(dateTo.AddDate(0, 0, +1)) {
+			if each[18] == operator {
+				if each[17] == VerifyAOIKYPRI || each[17] == VerifyAOIKYSEC || each[17] == VerifyAOIKY && each[3] == "SMT" {
+					//	t, _ := time.Parse(layout, each[16])
+					//	sum = sum.Add(t.Sub(t0))
+					//	fmt.Println("Time -", t)
+
+					pt := strings.Split(each[16], ":") // parsed time by ":"
+					if len(pt) != 3 {
+						log.Fatalf("input format mismatch.\nExpecting H:M:S\nHave: %v", pt)
+					}
+
+					h, m, s := pt[0], pt[1], pt[2] // hours, minutes, seconds
+					formattedDuration := fmt.Sprintf("%sh%sm%ss", h, m, s)
+
+					duration, err := time.ParseDuration(formattedDuration)
+					if err != nil {
+						log.Fatalf("Failed to parse duration: %v", formattedDuration)
+					}
+					sumInSeconds += int(duration.Seconds())
+
+				}
+			}
+		}
+	}
+
+	sumInDuration, _ := time.ParseDuration(fmt.Sprintf("%ds", sumInSeconds))
+	if sumInSeconds >= comparedDurations11Sec {
+		fmt.Printf("Sum [%s] >= compareDuration11 [%s]\n", sumInDuration.String(), comparedDuration11.String())
+		result := 1
+		return result, sumInSeconds
+	} else if sumInSeconds <= comparedDurations11Sec {
+		fmt.Printf("Sum [%s] =< compareDuration11 [%s]\n", sumInDuration.String(), comparedDuration11.String())
+		result := 0
+		return result, sumInSeconds
+	}
+
+	return result, sumInSeconds
+}
+
+// Выполнены работы по проверке и\или настройке более 50 заготовок
+func checkVerifyAOIKYPCB(rows [][]string, date1, date2 string) (int, int) {
+	//	counterCreateAOIKohYoung := 0
+	//layout := "3:04:05"
+	//	layoutPM := "3:04:05 PM"
+	//	t0, _ := time.Parse(layout, "00:00:00")
+	//	var sum time.Time
+	layoutDate := "02.01.2006"
+	//	layoutDate2 := "25.10.2006"
+	//	date1 := "01.10.2020"
+	dateFrom, _ := time.Parse(layoutDate, date1)
+	fmt.Println("Дата от -:", dateFrom.Format(layoutDate))
+	//	dateFromV := dateFrom.Format(layoutDate)
+
+	dateTo, _ := time.Parse(layoutDate, date2)
+	fmt.Println("Дата до -:", dateTo.Format(layoutDate))
+	//	dateToV := dateTo.Format(layoutDate)
+
+	var result int
+	var sumpcbG int
+	var sumpcbNG int
+
+	for _, each := range rows {
+		dateEach, _ := time.Parse(layoutDate, each[15])
+		//	dateEachF := dateEach.Format(layoutDate)
+		//if dateEachF >= dateFromV && dateEachF <= dateToV {
+		if dateEach.After(dateFrom.AddDate(0, 0, -1)) && dateEach.Before(dateTo.AddDate(0, 0, +1)) {
+			if each[18] == operator {
+				if each[17] == VerifyAOIKYPRI || each[17] == VerifyAOIKYSEC || each[17] == VerifyAOIKY && each[3] == "SMT" {
+					//	t, _ := time.Parse(layout, each[16])
+					//	sum = sum.Add(t.Sub(t0))
+					//	fmt.Println("Time -", t)
+					pcbG, _ := strconv.Atoi(each[20])
+					sumpcbG += pcbG
+
+					pcbNG, _ := strconv.Atoi(each[21])
+					sumpcbNG += pcbNG
+
+				}
+			}
+		}
+	}
+	sumpcbAll := sumpcbG + sumpcbNG
+	fmt.Println("Сумма плат -", sumpcbAll)
+
+	if sumpcbAll >= 50 {
+
+		result := 1
+		return result, sumpcbAll
+	} else if sumpcbAll <= 50 {
+
+		result := 0
+		return result, sumpcbAll
+	}
+	return result, sumpcbAll
+}
+
+// Выполнены работы по разбраковке на ревью станции после АОИ KY 11 часов в месяц и больше (более 50 заготовок)
+// ReviewStationPRI = "ReviewStation pri"
+// ReviewStationSEC = "ReviewStation sec"
+func checkReviewStationTime(rows [][]string, date1, date2 string) (int, int) {
+	//	counterCreateAOIKohYoung := 0
+	//layout := "3:04:05"
+	//	layoutPM := "3:04:05 PM"
+	//	t0, _ := time.Parse(layout, "00:00:00")
+	//	var sum time.Time
+	layoutDate := "02.01.2006"
+	//	layoutDate2 := "25.10.2006"
+	//	date1 := "01.10.2020"
+	dateFrom, _ := time.Parse(layoutDate, date1)
+	fmt.Println("Дата от -:", dateFrom.Format(layoutDate))
+	//	dateFromV := dateFrom.Format(layoutDate)
+
+	dateTo, _ := time.Parse(layoutDate, date2)
+	fmt.Println("Дата до -:", dateTo.Format(layoutDate))
+	//	dateToV := dateTo.Format(layoutDate)
+
+	var result int
+
+	var sumInSeconds int
+	comparedDuration11, _ := time.ParseDuration("11h")
+	comparedDurations11Sec := int(comparedDuration11.Seconds())
+
+	for _, each := range rows {
+		dateEach, _ := time.Parse(layoutDate, each[15])
+		//	dateEachF := dateEach.Format(layoutDate)
+		//if dateEachF >= dateFromV && dateEachF <= dateToV {
+		if dateEach.After(dateFrom.AddDate(0, 0, -1)) && dateEach.Before(dateTo.AddDate(0, 0, +1)) {
+			if each[18] == operator {
+				if each[17] == ReviewStationPRI || each[17] == ReviewStationSEC || each[17] == ReviewStation && each[3] == "SMT" {
+					//	t, _ := time.Parse(layout, each[16])
+					//	sum = sum.Add(t.Sub(t0))
+					//	fmt.Println("Time -", t)
+
+					pt := strings.Split(each[16], ":") // parsed time by ":"
+					if len(pt) != 3 {
+						log.Fatalf("input format mismatch.\nExpecting H:M:S\nHave: %v", pt)
+					}
+
+					h, m, s := pt[0], pt[1], pt[2] // hours, minutes, seconds
+					formattedDuration := fmt.Sprintf("%sh%sm%ss", h, m, s)
+
+					duration, err := time.ParseDuration(formattedDuration)
+					if err != nil {
+						log.Fatalf("Failed to parse duration: %v", formattedDuration)
+					}
+					sumInSeconds += int(duration.Seconds())
+
+				}
+			}
+		}
+	}
+
+	sumInDuration, _ := time.ParseDuration(fmt.Sprintf("%ds", sumInSeconds))
+	if sumInSeconds >= comparedDurations11Sec {
+		fmt.Printf("Sum [%s] >= compareDuration11 [%s]\n", sumInDuration.String(), comparedDuration11.String())
+		result := 1
+		return result, sumInSeconds
+	} else if sumInSeconds <= comparedDurations11Sec {
+		fmt.Printf("Sum [%s] =< compareDuration11 [%s]\n", sumInDuration.String(), comparedDuration11.String())
+		result := 0
+		return result, sumInSeconds
+	}
+
+	return result, sumInSeconds
+}
+
+// Выполнены работы по проверке и\или настройке более 50 заготовок
+func checkReviewStationPCB(rows [][]string, date1, date2 string) (int, int) {
+	//	counterCreateAOIKohYoung := 0
+	//layout := "3:04:05"
+	//	layoutPM := "3:04:05 PM"
+	//	t0, _ := time.Parse(layout, "00:00:00")
+	//	var sum time.Time
+	layoutDate := "02.01.2006"
+	//	layoutDate2 := "25.10.2006"
+	//	date1 := "01.10.2020"
+	dateFrom, _ := time.Parse(layoutDate, date1)
+	fmt.Println("Дата от -:", dateFrom.Format(layoutDate))
+	//	dateFromV := dateFrom.Format(layoutDate)
+
+	dateTo, _ := time.Parse(layoutDate, date2)
+	fmt.Println("Дата до -:", dateTo.Format(layoutDate))
+	//	dateToV := dateTo.Format(layoutDate)
+
+	var result int
+	var sumpcbG int
+	var sumpcbNG int
+
+	for _, each := range rows {
+		dateEach, _ := time.Parse(layoutDate, each[15])
+		//	dateEachF := dateEach.Format(layoutDate)
+		//if dateEachF >= dateFromV && dateEachF <= dateToV {
+		if dateEach.After(dateFrom.AddDate(0, 0, -1)) && dateEach.Before(dateTo.AddDate(0, 0, +1)) {
+			if each[18] == operator {
+				if each[17] == ReviewStationPRI || each[17] == ReviewStationSEC || each[17] == ReviewStation && each[3] == "SMT" {
+					//	t, _ := time.Parse(layout, each[16])
+					//	sum = sum.Add(t.Sub(t0))
+					//	fmt.Println("Time -", t)
+					pcbG, _ := strconv.Atoi(each[20])
+					sumpcbG += pcbG
+
+					pcbNG, _ := strconv.Atoi(each[21])
+					sumpcbNG += pcbNG
+
+				}
+			}
+		}
+	}
+	sumpcbAll := sumpcbG + sumpcbNG
+	fmt.Println("Сумма плат -", sumpcbAll)
+
+	if sumpcbAll >= 50 {
+
+		result := 1
+		return result, sumpcbAll
+	} else if sumpcbAll <= 50 {
+
+		result := 0
+		return result, sumpcbAll
+	}
+	return result, sumpcbAll
+}
+
+// Выполнены работы по загрузке и\или настройке установщиков 22 часа в месяц и больше
+// SetupNPM = "Настройка установщиков"
+func checkSetupNPM(rows [][]string, date1, date2 string) (int, int) {
+	//	counterCreateAOIKohYoung := 0
+	//layout := "3:04:05"
+	//	layoutPM := "3:04:05 PM"
+	//	t0, _ := time.Parse(layout, "00:00:00")
+	//	var sum time.Time
+	layoutDate := "02.01.2006"
+	//	layoutDate2 := "25.10.2006"
+	//	date1 := "01.10.2020"
+	dateFrom, _ := time.Parse(layoutDate, date1)
+	fmt.Println("Дата от -:", dateFrom.Format(layoutDate))
+	//	dateFromV := dateFrom.Format(layoutDate)
+
+	dateTo, _ := time.Parse(layoutDate, date2)
+	fmt.Println("Дата до -:", dateTo.Format(layoutDate))
+	//	dateToV := dateTo.Format(layoutDate)
+
+	var result int
+
+	var sumInSeconds int
+	comparedDuration22, _ := time.ParseDuration("22h")
+	comparedDurations22Sec := int(comparedDuration22.Seconds())
+
+	for _, each := range rows {
+		dateEach, _ := time.Parse(layoutDate, each[15])
+		//	dateEachF := dateEach.Format(layoutDate)
+		//if dateEachF >= dateFromV && dateEachF <= dateToV {
+		if dateEach.After(dateFrom.AddDate(0, 0, -1)) && dateEach.Before(dateTo.AddDate(0, 0, +1)) {
+			if each[18] == operator {
+				if each[17] == SetupNPM && each[3] == "SMT" {
+					//	t, _ := time.Parse(layout, each[16])
+					//	sum = sum.Add(t.Sub(t0))
+					//	fmt.Println("Time -", t)
+
+					pt := strings.Split(each[16], ":") // parsed time by ":"
+					if len(pt) != 3 {
+						log.Fatalf("input format mismatch.\nExpecting H:M:S\nHave: %v", pt)
+					}
+
+					h, m, s := pt[0], pt[1], pt[2] // hours, minutes, seconds
+					formattedDuration := fmt.Sprintf("%sh%sm%ss", h, m, s)
+
+					duration, err := time.ParseDuration(formattedDuration)
+					if err != nil {
+						log.Fatalf("Failed to parse duration: %v", formattedDuration)
+					}
+					sumInSeconds += int(duration.Seconds())
+
+				}
+			}
+		}
+	}
+
+	sumInDuration, _ := time.ParseDuration(fmt.Sprintf("%ds", sumInSeconds))
+	if sumInSeconds >= comparedDurations22Sec {
+		fmt.Printf("Sum [%s] >= compareDuration22 [%s]\n", sumInDuration.String(), comparedDuration22.String())
+		result := 1
+		return result, sumInSeconds
+	} else if sumInSeconds <= comparedDurations22Sec {
+		fmt.Printf("Sum [%s] =< compareDuration11 [%s]\n", sumInDuration.String(), comparedDuration22.String())
+		result := 0
+		return result, sumInSeconds
+	}
+
+	return result, sumInSeconds
 }
 
 // SetupTrafaretPrinterPRI = "Настройка принтера Prim / Sec"
-func checkSetupTrafaretPrinter(rows [][]string) string {
+func checkSetupTrafaretPrinter(rows [][]string, date1, date2 string) int {
 	counterSetupTrafaretPrinter := 0
-	var result string
+	layoutDate := "02.01.2006"
+
+	dateFrom, _ := time.Parse(layoutDate, date1)
+	fmt.Println("Дата от -:", dateFrom.Format(layoutDate))
+
+	dateTo, _ := time.Parse(layoutDate, date2)
+	fmt.Println("Дата до -:", dateTo.Format(layoutDate))
+	var result int
 	for _, each := range rows {
-		if each[18] == operator {
-			if each[17] == SetupTrafaretPrinterPRI || each[17] == SetupTrafaretPrinterSEC && each[3] == "SMT" {
-				product := each[19]
-				fmt.Println("настройка трафаретного принтера, изделия - ", product)
-				counterSetupTrafaretPrinter++
-				//	fmt.Println(counterNPM)
-				if counterSetupTrafaretPrinter >= 2 {
-					//	fmt.Println("OK")
-					result := "OK"
-					return result
-					//	return resalt
-				} else if counterSetupTrafaretPrinter < 2 {
-					//	fmt.Println("NOK")
-					result := "NOK"
-					return result
+		dateEach, _ := time.Parse(layoutDate, each[15])
+
+		if dateEach.After(dateFrom.AddDate(0, 0, -1)) && dateEach.Before(dateTo.AddDate(0, 0, +1)) {
+			if each[18] == operator {
+				if each[17] == SetupTrafaretPrinterPRI || each[17] == SetupTrafaretPrinterSEC && each[3] == "SMT" {
+					product := each[19]
+					fmt.Println("настройка трафаретного принтера, изделия - ", product)
+					counterSetupTrafaretPrinter++
+					//	fmt.Println(counterNPM)
+					if counterSetupTrafaretPrinter >= 2 {
+						//	fmt.Println("OK")
+						result := 1
+						return result
+						//	return resalt
+					} else if counterSetupTrafaretPrinter < 2 {
+						//	fmt.Println("NOK")
+						result := 0
+						return result
+					}
 				}
 			}
 		}
@@ -626,24 +1600,35 @@ func checkSetupTrafaretPrinter(rows [][]string) string {
 }
 
 // Training
-func checkTraining(rows [][]string) string {
+func checkTraining(rows [][]string, date1, date2 string) int {
 	counterTraining := 0
-	var result string
-	for _, each := range rows {
-		if each[18] == operator {
-			if each[17] == Training {
+	layoutDate := "02.01.2006"
 
-				counterTraining++
-				//	fmt.Println(counterNPM)
-				if counterTraining >= 1 {
-					//	fmt.Println("OK")
-					result := "OK"
-					return result
-					//	return resalt
-				} else if counterTraining < 1 {
-					//	fmt.Println("NOK")
-					result := "NOK"
-					return result
+	dateFrom, _ := time.Parse(layoutDate, date1)
+	fmt.Println("Дата от -:", dateFrom.Format(layoutDate))
+
+	dateTo, _ := time.Parse(layoutDate, date2)
+	fmt.Println("Дата до -:", dateTo.Format(layoutDate))
+	var result int
+	for _, each := range rows {
+		dateEach, _ := time.Parse(layoutDate, each[15])
+
+		if dateEach.After(dateFrom.AddDate(0, 0, -1)) && dateEach.Before(dateTo.AddDate(0, 0, +1)) {
+			if each[18] == operator {
+				if each[17] == Training {
+
+					counterTraining++
+					//	fmt.Println(counterNPM)
+					if counterTraining >= 1 {
+						//	fmt.Println("OK")
+						result := 1
+						return result
+						//	return resalt
+					} else if counterTraining < 1 {
+						//	fmt.Println("NOK")
+						result := 0
+						return result
+					}
 				}
 			}
 		}
@@ -652,27 +1637,40 @@ func checkTraining(rows [][]string) string {
 }
 
 // WriteInstraction
-func checkWriteInstraction(rows [][]string) string {
+func checkWriteInstraction(rows [][]string, date1, date2 string) int {
 	counterWriteInstraction := 0
-	var result string
+	layoutDate := "02.01.2006"
+
+	dateFrom, _ := time.Parse(layoutDate, date1)
+	fmt.Println("Дата от -:", dateFrom.Format(layoutDate))
+
+	dateTo, _ := time.Parse(layoutDate, date2)
+	fmt.Println("Дата до -:", dateTo.Format(layoutDate))
+	var result int
 	for _, each := range rows {
-		if each[18] == operator {
-			if each[17] == WriteInstraction {
-				//	intr := each[17]
-				//	fmt.Println("Инструкция - ", intr)
-				counterWriteInstraction++
-				//	fmt.Println(counterNPM)
-				if counterWriteInstraction >= 1 {
-					//	fmt.Println("OK")
-					result := "OK"
-					return result
-					//	return resalt
-				} else if counterWriteInstraction < 1 {
-					//	fmt.Println("NOK")
-					result := "NOK"
-					return result
+		dateEach, _ := time.Parse(layoutDate, each[15])
+		//	fmt.Println("dateFrom", dateEach.After(dateFrom.AddDate(0, -1, -1)))
+		if dateEach.After(dateFrom.AddDate(0, -2, -1)) && dateEach.Before(dateTo.AddDate(0, 0, +1)) {
+
+			if each[18] == operator {
+				if each[17] == WriteInstraction {
+					//	intr := each[17]
+					//	fmt.Println("Инструкция - ", intr)
+					counterWriteInstraction++
+					//	fmt.Println(counterNPM)
+					if counterWriteInstraction >= 1 {
+						//	fmt.Println("OK")
+						result := 1
+						return result
+						//	return resalt
+					} else if counterWriteInstraction < 1 {
+						//	fmt.Println("NOK")
+						result := 0
+						return result
+					}
 				}
 			}
+
 		}
 	}
 	return result
@@ -681,32 +1679,43 @@ func checkWriteInstraction(rows [][]string) string {
 // Выполнена проверка программы установщиков 1 раз месяц и чаще
 // VerifyProgrammInstaller = "Проверка программы установщиков"
 // VerifyEquipment         = "Проверка комплектации"
-func checkVerifyProgrammInstaller(rows [][]string) int {
+func checkVerifyProgrammInstaller(rows [][]string, date1, date2 string) int {
 
 	counterVerifyProgrammInstaller := 0
+	layoutDate := "02.01.2006"
+
+	dateFrom, _ := time.Parse(layoutDate, date1)
+	fmt.Println("Дата от -:", dateFrom.Format(layoutDate))
+
+	dateTo, _ := time.Parse(layoutDate, date2)
+	fmt.Println("Дата до -:", dateTo.Format(layoutDate))
 
 	var result int
 	for _, each := range rows {
-		if each[18] == operator {
-			if each[17] == VerifyProgrammInstaller {
-				//	intr := each[17]
-				//	fmt.Println("Инструкция - ", intr)
-				counterVerifyProgrammInstaller++
-				//	fmt.Println(counterNPM)
-				if counterVerifyProgrammInstaller >= 1 {
-					//	fmt.Println("OK")
-					result := 1
-					fmt.Println("resultVerifyInstaller OK -", result)
-					return result
+		dateEach, _ := time.Parse(layoutDate, each[15])
 
-					//	return resalt
-				} else if counterVerifyProgrammInstaller < 1 {
-					//	fmt.Println("NOK")
-					result := 0
-					fmt.Println("resultVerifyInstaller NOK -", result)
-					return result
+		if dateEach.After(dateFrom.AddDate(0, 0, -1)) && dateEach.Before(dateTo.AddDate(0, 0, +1)) {
+			if each[18] == operator {
+				if each[17] == VerifyProgrammInstaller {
+					//	intr := each[17]
+					//	fmt.Println("Инструкция - ", intr)
+					counterVerifyProgrammInstaller++
+					//	fmt.Println(counterNPM)
+					if counterVerifyProgrammInstaller >= 1 {
+						//	fmt.Println("OK")
+						result := 1
+						fmt.Println("resultVerifyInstaller OK -", result)
+						return result
+
+						//	return resalt
+					} else if counterVerifyProgrammInstaller < 1 {
+						//	fmt.Println("NOK")
+						result := 0
+						fmt.Println("resultVerifyInstaller NOK -", result)
+						return result
+					}
+
 				}
-
 			}
 
 		}
@@ -716,6 +1725,7 @@ func checkVerifyProgrammInstaller(rows [][]string) int {
 	return result
 }
 
+/*
 func checkVerifyEquipment(rows [][]string) int {
 	counterVerifyInstaller := 0
 
@@ -743,29 +1753,39 @@ func checkVerifyEquipment(rows [][]string) int {
 
 	return result
 }
-
+*/
 // VerifyPCBLine
-func checkVerifyPCBLine(rows [][]string) string {
+func checkVerifyPCBLine(rows [][]string, date1, date2 string) int {
 	counterVerifyPCBLine := 0
+	layoutDate := "02.01.2006"
 
-	var result string
+	dateFrom, _ := time.Parse(layoutDate, date1)
+	fmt.Println("Дата от -:", dateFrom.Format(layoutDate))
+
+	dateTo, _ := time.Parse(layoutDate, date2)
+	fmt.Println("Дата до -:", dateTo.Format(layoutDate))
+	var result int
 	for _, each := range rows {
-		if each[18] == operator {
+		dateEach, _ := time.Parse(layoutDate, each[15])
 
-			if each[17] == VerifyPCBLine && each[3] == "SMT" {
+		if dateEach.After(dateFrom.AddDate(0, 0, -1)) && dateEach.Before(dateTo.AddDate(0, 0, +1)) {
+			if each[18] == operator {
 
-				counterVerifyPCBLine++
-				if counterVerifyPCBLine >= 1 {
-					result := "OK"
-					//	fmt.Println("resultVerifyEquipment OK -", result)
-					return result
-				} else if counterVerifyPCBLine < 1 {
-					result := "NOK"
-					//	fmt.Println("resultVerifyEquipment NOK -", result)
-					return result
+				if each[17] == VerifyPCBLine && each[3] == "SMT" {
+
+					counterVerifyPCBLine++
+					if counterVerifyPCBLine >= 1 {
+						result := 1
+						//	fmt.Println("resultVerifyEquipment OK -", result)
+						return result
+					} else if counterVerifyPCBLine < 1 {
+						result := 0
+						//	fmt.Println("resultVerifyEquipment NOK -", result)
+						return result
+					}
 				}
-			}
 
+			}
 		}
 
 	}
@@ -774,10 +1794,16 @@ func checkVerifyPCBLine(rows [][]string) string {
 }
 
 // VerifyPCBSolder = "Проверка первой платы после пайки"
-func checkVerifyPCBSolder(rows [][]string) string {
+func checkVerifyPCBSolder(rows [][]string, date1, date2 string) int {
 	counterVerifyPCBSolder := 0
+	layoutDate := "02.01.2006"
 
-	var result string
+	dateFrom, _ := time.Parse(layoutDate, date1)
+	fmt.Println("Дата от -:", dateFrom.Format(layoutDate))
+
+	dateTo, _ := time.Parse(layoutDate, date2)
+	fmt.Println("Дата до -:", dateTo.Format(layoutDate))
+	var result int
 	for _, each := range rows {
 		if each[18] == operator {
 
@@ -785,11 +1811,11 @@ func checkVerifyPCBSolder(rows [][]string) string {
 
 				counterVerifyPCBSolder++
 				if counterVerifyPCBSolder >= 1 {
-					result := "OK"
+					result := 1
 					//	fmt.Println("resultVerifyEquipment OK -", result)
 					return result
 				} else if counterVerifyPCBSolder < 1 {
-					result := "NOK"
+					result := 0
 					//	fmt.Println("resultVerifyEquipment NOK -", result)
 					return result
 				}
@@ -803,27 +1829,83 @@ func checkVerifyPCBSolder(rows [][]string) string {
 }
 
 // ICT = "Внутрисхемное тестирование ICT"
-func checkICT(rows [][]string) string {
+func checkICT(rows [][]string, date1, date2 string) int {
 	counterICT := 0
+	layoutDate := "02.01.2006"
 
-	var result string
+	dateFrom, _ := time.Parse(layoutDate, date1)
+	fmt.Println("Дата от -:", dateFrom.Format(layoutDate))
+
+	dateTo, _ := time.Parse(layoutDate, date2)
+	fmt.Println("Дата до -:", dateTo.Format(layoutDate))
+
+	var result int
 	for _, each := range rows {
-		if each[18] == operator {
+		dateEach, _ := time.Parse(layoutDate, each[15])
 
-			if each[17] == ICT {
+		if dateEach.After(dateFrom.AddDate(0, 0, -1)) && dateEach.Before(dateTo.AddDate(0, 0, +1)) {
+			if each[18] == operator {
 
-				counterICT++
-				if counterICT >= 1 {
-					result := "OK"
-					//	fmt.Println("resultVerifyEquipment OK -", result)
-					return result
-				} else if counterICT < 1 {
-					result := "NOK"
-					//	fmt.Println("resultVerifyEquipment NOK -", result)
-					return result
+				if each[17] == ICT {
+
+					counterICT++
+					if counterICT >= 1 {
+						result := 1
+						//	fmt.Println("resultVerifyEquipment OK -", result)
+						return result
+					} else if counterICT < 1 {
+						result := 0
+						//	fmt.Println("resultVerifyEquipment NOK -", result)
+						return result
+					}
 				}
 			}
 
+		}
+
+	}
+
+	return result
+}
+
+// Выполнена отладка программы АОИ перед сборкой 1 раз в месяц и чаще.
+// Настойка первой платы на АОИ  Настойка первой платы на АОИ SEC Настойка первой платы на АОИ PRI
+func checkDebugAOI(rows [][]string, date1, date2 string) int {
+	counterDebugAOI := 0
+
+	layoutDate := "02.01.2006"
+
+	dateFrom, _ := time.Parse(layoutDate, date1)
+	fmt.Println("Дата от -:", dateFrom.Format(layoutDate))
+
+	dateTo, _ := time.Parse(layoutDate, date2)
+	fmt.Println("Дата до -:", dateTo.Format(layoutDate))
+
+	var result int
+	for _, each := range rows {
+		dateEach, _ := time.Parse(layoutDate, each[15])
+
+		if dateEach.After(dateFrom.AddDate(0, 0, -1)) && dateEach.Before(dateTo.AddDate(0, 0, +1)) {
+			if each[18] == operator {
+
+				if each[17] == DebugAOI || each[17] == DebugAOIPRI || each[17] == DebugAOISEC && each[3] == "SMT" {
+					intr := each[19]
+					fmt.Println("Изделие debugAOI - ", intr)
+					counterDebugAOI++
+					if counterDebugAOI >= 1 {
+						result := 1
+						//	fmt.Println("resultVerifyEquipment OK -", result)
+
+						return result
+
+					} else if counterDebugAOI < 1 {
+						result := 0
+						//	fmt.Println("resultVerifyEquipment NOK -", result)
+						return result
+					}
+				}
+
+			}
 		}
 
 	}
