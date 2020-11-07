@@ -14,7 +14,7 @@ import (
 const (
 	// Составлена 1 УП для установщиков для изделий СЛ 1 раз в 3 месяца и чаще
 	createNPM = "Создание программы для NPM"
-	operator  = "Ельцов Андрей Николаевич"
+	operator  = "Байрамашвили Альберт Зурабович"
 	// Александров Александр Викторович
 	// Аникина Раиса Владимировна
 	// Составлена 1 УП для установщиков для контрактных изделий 1 раз в месяц и чаще
@@ -75,6 +75,8 @@ func main() {
 	//		fmt.Printf("%s\n", each[18])
 	//		//	fmt.Println(each)
 	//	}
+	date1 := "01.10.2020"
+	date2 := "31.10.2020"
 
 	responseCheckNPMSL := checkCreatNPMStarLine(reportCsv2)
 	fmt.Println("responseCheckNPM StarLine - ", responseCheckNPMSL)
@@ -86,7 +88,7 @@ func main() {
 	fmt.Println("responseCheckCreateAOIModus - ", responseCheckCreateAOIModus)
 	responseCheckCreateAOIKohYoung := checkProgrammCreateAOIKohYoung(reportCsv2)
 	fmt.Println("responseCheckCreateAOIKohYoung - ", responseCheckCreateAOIKohYoung)
-	responseSetupSelectivLine := checkSetupSelectivLineSEHO(reportCsv2)
+	responseSetupSelectivLine := checkSetupSelectivLineSEHO(reportCsv2, date1, date2)
 	fmt.Println("responseSetupSelectivLine - ", responseSetupSelectivLine)
 	responseSetupTrafaretPrinter := checkSetupTrafaretPrinter(reportCsv2)
 	fmt.Println("responseSetupTrafaretPrinter - ", responseSetupTrafaretPrinter)
@@ -410,12 +412,23 @@ func checkProgrammCreateAOIKohYoung(rows [][]string) string {
 
 // SetupSelectivLine
 // Выполнены работы по загрузке и\или настройке машины селективной пайки 22 часа в месяц и больше
-func checkSetupSelectivLineSEHO(rows [][]string) int {
+func checkSetupSelectivLineSEHO(rows [][]string, date1, date2 string) int {
 	//	counterCreateAOIKohYoung := 0
 	//layout := "3:04:05"
 	//	layoutPM := "3:04:05 PM"
 	//	t0, _ := time.Parse(layout, "00:00:00")
 	//	var sum time.Time
+	layoutDate := "02.01.2006"
+	//	layoutDate2 := "25.10.2006"
+	//	date1 := "01.10.2020"
+	dateFrom, _ := time.Parse(layoutDate, date1)
+	fmt.Println("Дата от -:", dateFrom.Format(layoutDate))
+	//	dateFromV := dateFrom.Format(layoutDate)
+
+	dateTo, _ := time.Parse(layoutDate, date2)
+	fmt.Println("Дата до -:", dateTo.Format(layoutDate))
+	//	dateToV := dateTo.Format(layoutDate)
+
 	var result int
 	var sumInSeconds int
 	comparedDuration7, _ := time.ParseDuration("7h")
@@ -451,26 +464,31 @@ func checkSetupSelectivLineSEHO(rows [][]string) int {
 	comparedDuration112, _ := time.ParseDuration("112h")
 	comparedDurations112Sec := int(comparedDuration112.Seconds())
 	for _, each := range rows {
-		if each[18] == operator {
-			if each[17] == SetupSelectivLineSEHOPRI || each[17] == SetupSelectivLineSEHOSEC && each[3] == "THT" {
-				//	t, _ := time.Parse(layout, each[16])
-				//	sum = sum.Add(t.Sub(t0))
-				//	fmt.Println("Time -", t)
+		dateEach, _ := time.Parse(layoutDate, each[15])
+		//	dateEachF := dateEach.Format(layoutDate)
+		//if dateEachF >= dateFromV && dateEachF <= dateToV {
+		if dateEach.After(dateFrom.AddDate(0, 0, -1)) && dateEach.Before(dateTo.AddDate(0, 0, +1)) {
+			if each[18] == operator {
+				if each[17] == SetupSelectivLineSEHOPRI || each[17] == SetupSelectivLineSEHOSEC && each[3] == "THT" {
+					//	t, _ := time.Parse(layout, each[16])
+					//	sum = sum.Add(t.Sub(t0))
+					//	fmt.Println("Time -", t)
 
-				pt := strings.Split(each[16], ":") // parsed time by ":"
-				if len(pt) != 3 {
-					log.Fatalf("input format mismatch.\nExpecting H:M:S\nHave: %v", pt)
+					pt := strings.Split(each[16], ":") // parsed time by ":"
+					if len(pt) != 3 {
+						log.Fatalf("input format mismatch.\nExpecting H:M:S\nHave: %v", pt)
+					}
+
+					h, m, s := pt[0], pt[1], pt[2] // hours, minutes, seconds
+					formattedDuration := fmt.Sprintf("%sh%sm%ss", h, m, s)
+
+					duration, err := time.ParseDuration(formattedDuration)
+					if err != nil {
+						log.Fatalf("Failed to parse duration: %v", formattedDuration)
+					}
+					sumInSeconds += int(duration.Seconds())
+
 				}
-
-				h, m, s := pt[0], pt[1], pt[2] // hours, minutes, seconds
-				formattedDuration := fmt.Sprintf("%sh%sm%ss", h, m, s)
-
-				duration, err := time.ParseDuration(formattedDuration)
-				if err != nil {
-					log.Fatalf("Failed to parse duration: %v", formattedDuration)
-				}
-				sumInSeconds += int(duration.Seconds())
-
 			}
 		}
 	}
