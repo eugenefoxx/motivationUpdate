@@ -93,14 +93,14 @@ func main() {
 	r.HandleFunc("/motivationCounter", motivationRequest()).Methods("POST")
 	//	http.Handle("/", r)
 
-	/*	r := chi.NewRouter()
-		r.Use(middleware.Logger)
+	//	r := chi.NewRouter()
+	//	r.Use(middleware.Logger)
 
-		r.Route("/motivationRequest", func(r chi.Router) {
-			r.Get("/", pagemotivationRequest)
-			r.Post("/", motivationRequest)
+	//	r.Route("/motivationRequest", func(r chi.Router) {
+	//	r.HandleFunc("/motivationCounter", pagemotivationRequest)
+	//	r.HandleFunc("/motivationCounter", motivationRequest)
 
-		}) */
+	//	})
 	open.StartWith("http://localhost:3003/motivationCounter", "google-chrome-stable") // chromium
 	http.ListenAndServe(":3003", r)
 	/*
@@ -395,7 +395,7 @@ func motivationRequest() http.HandlerFunc {
 		reponseVerifyAOIModusTime, reponseVerifyAOIModusTimeHoure := checkVerifyAOIModusTime(reportCsv2, search.Tabel, search.Date1, search.Date2)
 		sumInDuration, _ := time.ParseDuration(fmt.Sprintf("%ds", reponseVerifyAOIModusTimeHoure))
 		if reponseVerifyAOIModusTime == 1 {
-			reponseVerifyAOIModusTime = 3
+			reponseVerifyAOIModusTime = 1
 			fmt.Printf("Выполнены работы по проверке и или настройке на АОИ Modus 11 часов - OK %d, время - [%s]\n", reponseVerifyAOIModusTime, sumInDuration.String())
 		} else if reponseVerifyAOIModusTime == 0 {
 			reponseVerifyAOIModusTime = 0
@@ -403,7 +403,7 @@ func motivationRequest() http.HandlerFunc {
 		}
 		reponseVerifyAOIModusPCB, reponseVerifyAOIModusPCBQty := checkVerifyAOIModusPCB(reportCsv2, search.Tabel, search.Date1, search.Date2)
 		if reponseVerifyAOIModusPCB == 1 {
-			reponseVerifyAOIModusPCB = 3
+			reponseVerifyAOIModusPCB = 1
 			fmt.Printf("Выполнены работы по проверке и или настройке более 50 заготовок - OK %d, количество -%d\n", reponseVerifyAOIModusPCB, reponseVerifyAOIModusPCBQty)
 		} else if reponseVerifyAOIModusPCB == 0 {
 			reponseVerifyAOIModusPCB = 0
@@ -466,6 +466,7 @@ func motivationRequest() http.HandlerFunc {
 				}
 			}
 		} else if reponseReviewStation != 2 {
+			reponseReviewStation = 0
 			result := []string{"Выполнены работы по разбраковке на ревью станции после АОИ KY 11 часов в месяц и больше и более 50 заготовок" + "," + strconv.Itoa(reponseReviewStation) + "," + "время - " + sumInDurationReviewStation.String() + " " + "количество - " + strconv.Itoa(reponseReviewStationPCBQty)}
 			for _, v := range result {
 				_, err = fmt.Fprintln(split, v)
@@ -474,7 +475,7 @@ func motivationRequest() http.HandlerFunc {
 					return
 				}
 			}
-			reponseReviewStation = 0
+
 		}
 		fmt.Println("Выполнены работы по разбраковке на ревью станции после АОИ KY 11 часов в месяц и больше и более 50 заготовок, балл - ", reponseReviewStation)
 
@@ -1208,8 +1209,8 @@ func checkSetupSelectivLine(rows [][]string, tabel, date1, date2 string) (int, i
 
 	sumInDuration, _ := time.ParseDuration(fmt.Sprintf("%ds", sumInSeconds))
 	if sumInSeconds >= comparedDurations22Sec {
-		fmt.Printf("Sum [%s] < compareDuration22 [%s]\n", sumInDuration.String(), comparedDuration22.String())
-		result := 3
+		fmt.Printf("Sum [%s] >= compareDuration22 [%s]\n", sumInDuration.String(), comparedDuration22.String())
+		result := 1
 		return result, sumInSeconds
 	} else if sumInSeconds <= comparedDurations22Sec {
 		fmt.Printf("Sum [%s] < compareDuration22 [%s]\n", sumInDuration.String(), comparedDuration22.String())
