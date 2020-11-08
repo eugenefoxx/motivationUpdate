@@ -575,7 +575,7 @@ func motivationRequest() http.HandlerFunc {
 		responseTraining := checkTraining(reportCsv2, search.Tabel, search.Date1, search.Date2)
 		if responseTraining == 1 {
 			responseTraining = 3
-			result := []string{"Проведение обучений для сотрудников 1 раз в месяц и чаще, бланк ознакомления сотрудников с подписями сдан администратору" + "," + strconv.Itoa(responseTraining)}
+			result := []string{"Проведение обучений для сотрудников 1 раз в месяц и чаще; бланк ознакомления сотрудников с подписями сдан администратору" + "," + strconv.Itoa(responseTraining)}
 			for _, v := range result {
 				_, err = fmt.Fprintln(split, v)
 				if err != nil {
