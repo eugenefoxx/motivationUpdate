@@ -8,13 +8,18 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"os/exec"
 	"strconv"
 	"strings"
 	"text/template"
 	"time"
 
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/middleware"
+	"github.com/sirupsen/logrus"
+
 	"github.com/skratchdot/open-golang/open"
+	"github.com/spf13/viper"
 )
 
 const (
@@ -87,22 +92,45 @@ const (
 	DebugAOISEC = "Настойка первой платы на АОИ SEC"
 )
 
+type Handler struct {
+	*chi.Mux
+}
+
 func main() {
-	r := mux.NewRouter()
-	r.HandleFunc("/motivationCounter", pagemotivationRequest()).Methods("GET")
-	r.HandleFunc("/motivationCounter", motivationRequest()).Methods("POST")
+
+	if err := initConfig(); err != nil {
+		logrus.Fatalf("error initializing configs: %s", err.Error())
+	}
+	//	r := mux.NewRouter()
+	//	r.HandleFunc("/motivationCounter", pagemotivationRequest()).Methods("GET")
+	//	r.HandleFunc("/motivationCounter", motivationRequest()).Methods("POST")
 	//	http.Handle("/", r)
 
-	//	r := chi.NewRouter()
-	//	r.Use(middleware.Logger)
+	r := chi.NewRouter()
+	h := &Handler{
+		Mux: chi.NewMux(),
+	}
+	r.Use(middleware.RequestID)
+	r.Use(middleware.RealIP)
+	r.Use(middleware.Logger)
+	r.Use(middleware.Recoverer)
 
-	//	r.Route("/motivationRequest", func(r chi.Router) {
-	//	r.HandleFunc("/motivationCounter", pagemotivationRequest)
-	//	r.HandleFunc("/motivationCounter", motivationRequest)
+	r.Route("/", func(r chi.Router) {
+		//	r.HandleFunc("/motivationCounter", pagemotivationRequest)
+		//	r.HandleFunc("/motivationCounter", motivationRequest)
+		r.Get("/motivationCounter", h.PagemotivationRequest())
+		r.Post("/motivationCounter", h.MotivationRequest())
+	})
 
-	//	})
-	open.StartWith("http://localhost:3003/motivationCounter", "google-chrome-stable") // chromium
-	http.ListenAndServe(":3003", r)
+	browser := isCommmandAvailable("google-chrome-stable")
+	if browser == true {
+		open.StartWith("http://localhost:3001/motivationCounter", "google-chrome-stable")
+	}
+	if browser == false {
+		open.StartWith("http://localhost:3001/motivationCounter", "google.exe")
+	}
+	// chromium
+	http.ListenAndServe(":3001", r)
 	/*
 		d := time.Date(2020, 11, 3, 12, 30, 0, 0, time.UTC)
 		//10.1.2020 19:48:34
@@ -170,23 +198,26 @@ func main() {
 
 }
 
-func pagemotivationRequest() http.HandlerFunc {
-	tpl, err := template.New("").ParseFiles("./html/index.html")
+func (h *Handler) PagemotivationRequest() http.HandlerFunc {
+
+	tpl, err := template.New("").ParseFiles(viper.GetString("web.html"))
 	if err != nil {
 		panic(err)
 	}
 	return func(w http.ResponseWriter, r *http.Request) {
 		err = tpl.ExecuteTemplate(w, "index.html", nil)
+
 	}
+
 }
 
-func motivationRequest() http.HandlerFunc {
+func (h *Handler) MotivationRequest() http.HandlerFunc {
 	type searchBy struct {
 		Tabel string `json:"tabel"`
 		Date1 string `json:"date1"`
 		Date2 string `json:"date2"`
 	}
-	tpl, err := template.New("").ParseFiles("./html/index.html")
+	tpl, err := template.New("").ParseFiles(viper.GetString("web.html"))
 	if err != nil {
 		panic(err)
 	}
@@ -199,13 +230,15 @@ func motivationRequest() http.HandlerFunc {
 		fmt.Println("date1 - ", search.Date1)
 		search.Date2 = r.FormValue("date2")
 		fmt.Println("date2 - ", search.Date2)
-		reportCsv1 := readfileseeker("./docs/Ежедневный отчёт оператора (с 01.10.2020) (Ответы) (2).csv")
+		reportCsv1 := readfileseeker(viper.GetString("data.source"))
 
 		//reportCsv2 := readseeker(reportCsv1)
 		writeChange(reportCsv1)
-		reportCsv2 := readfile("report.csv")
+		// reportCsv2 := readfile("report.csv")
+		reportCsv2 := readfile(viper.GetString("update.updateReport"))
 
-		reportMotivation, err := os.Create("reportMotivation.csv")
+		// reportMotivation, err := os.Create("reportMotivation.csv")
+		reportMotivation, err := os.Create(viper.GetString("update.updateReportMotivation"))
 		if err != nil {
 			log.Println(err)
 		}
@@ -484,7 +517,7 @@ func motivationRequest() http.HandlerFunc {
 		sumInDurationSetupNPM, _ := time.ParseDuration(fmt.Sprintf("%ds", timeSetupNPM))
 		if reponseSetupNPM == 1 {
 			reponseSetupNPM = 3
-			result := []string{"Выполнены работы по загрузке и или настройке установщиков 22 часа в месяц и больше" + "," + strconv.Itoa(reponseSetupNPM)}
+			result := []string{"Выполнены работы по загрузке и или настройке установщиков 22 часа в месяц и больше" + "," + strconv.Itoa(reponseSetupNPM) + "," + "время - " + sumInDurationSetupNPM.String()}
 			for _, v := range result {
 				_, err = fmt.Fprintln(split, v)
 				if err != nil {
@@ -494,7 +527,7 @@ func motivationRequest() http.HandlerFunc {
 			}
 		} else if reponseSetupNPM != 1 {
 			reponseSetupNPM = 0
-			result := []string{"Выполнены работы по загрузке и или настройке установщиков 22 часа в месяц и больше" + "," + strconv.Itoa(reponseSetupNPM)}
+			result := []string{"Выполнены работы по загрузке и или настройке установщиков 22 часа в месяц и больше" + "," + strconv.Itoa(reponseSetupNPM) + "," + "время - " + sumInDurationSetupNPM.String()}
 			for _, v := range result {
 				_, err = fmt.Fprintln(split, v)
 				if err != nil {
@@ -504,7 +537,6 @@ func motivationRequest() http.HandlerFunc {
 			}
 		}
 		fmt.Printf("Выполнены работы по загрузке и или настройке установщиков 22 часа в месяц и больше, балл - %d, время - [%s]\n", reponseSetupNPM, sumInDurationSetupNPM.String())
-
 		//////////////////////////////////////////////////////////////////////////////////////////////////////
 		reponseVerifyAOIKYTime, reponseVerifyAOIKYTimeHoure := checkVerifyAOIKYTime(reportCsv2, search.Tabel, search.Date1, search.Date2)
 		sumInDurationAOIKY, _ := time.ParseDuration(fmt.Sprintf("%ds", reponseVerifyAOIKYTimeHoure))
@@ -764,7 +796,13 @@ func motivationRequest() http.HandlerFunc {
 		}
 		fmt.Println("Выполнена отладка программы АОИ перед сборкой 1 раз в месяц и чаще, балл - ", reponseDebugAOI)
 
-		open.StartWith("reportMotivation.csv", "soffice")
+		calc := isCommmandAvailable("soffice")
+		if calc == true {
+			open.StartWith("reportMotivation.csv", "soffice")
+		}
+		if calc == false {
+			open.StartWith("reportMotivation.csv", "scalc.exe")
+		}
 
 		err = tpl.ExecuteTemplate(w, "index.html", nil)
 
@@ -829,7 +867,8 @@ func readseeker(rs io.ReadSeeker) ([][]string, error) {
 }
 
 func writeChange(rows [][]string) {
-	f, err := os.Create("report.csv")
+	//f, err := os.Create("report.csv")
+	f, err := os.Create(viper.GetString("update.updateReport"))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -2474,4 +2513,39 @@ func checkDebugAOI(rows [][]string, tabel, date1, date2 string) int {
 	}
 
 	return result
+}
+
+func isCommmandAvailable(name string) bool {
+	cmd := exec.Command("/bin/sh", "-c", "command", "-v", name)
+	if err := cmd.Run(); err != nil {
+		return false
+	}
+	return true
+}
+
+func initConfig() error {
+	MyDir := DirExists("/home/eugenearch/Code/github.com/eugenefoxx/starLine/motivationUpdate/configs")
+	WinSLDir := DirExists("Z:/1_Планирование производства Победит1/motivationUpdate/configs")
+	if MyDir == true {
+		viper.AddConfigPath("/home/eugenearch/Code/github.com/eugenefoxx/starLine/motivationUpdate/configs")
+		viper.SetConfigName("config")
+		return viper.ReadInConfig()
+	}
+	if WinSLDir == true {
+		viper.AddConfigPath("Z:/1_Планирование производства Победит1/motivationUpdate/configs")
+		viper.SetConfigName("config")
+		return viper.ReadInConfig()
+	}
+
+	return viper.ReadInConfig()
+
+}
+
+func DirExists(name string) bool {
+	if fi, err := os.Stat(name); err == nil {
+		if fi.Mode().IsDir() {
+			return true
+		}
+	}
+	return false
 }

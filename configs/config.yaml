@@ -1,0 +1,15 @@
+data:
+  source: "/home/eugenearch/Code/github.com/eugenefoxx/starLine/motivationUpdate/docs/source.csv"
+  # source: "Z:/1_Планирование производства Победит1/motivationUpdate/docs/source.csv"
+  # source: "C:/Users/Евгений/Code/github.com/eugenefoxx/starline/motivationUpdate/docs/source.csv"
+web:
+  html: "/home/eugenearch/Code/github.com/eugenefoxx/starLine/motivationUpdate/html/index.html"
+  # html: "Z:/1_Планирование производства Победит1/motivationUpdate/html/index.html"
+  # html: "C:/Users/Евгений/Code/github.com/eugenefoxx/starline/motivationUpdate/html/index.html"
+update:
+  updateReport: "/home/eugenearch/Code/github.com/eugenefoxx/starLine/motivationUpdate/report.csv"
+  # updateReport: "Z:/1_Планирование производства Победит1/motivationUpdate/report.csv"
+  # updateReport: "C:/Users/Евгений/Code/github.com/eugenefoxx/starline/motivationUpdate/report.csv"
+  updateReportMotivation: "/home/eugenearch/Code/github.com/eugenefoxx/starLine/motivationUpdate/reportMotivation.csv"
+  # updateReportMotivation: "Z:/1_Планирование производства Победит1/motivationUpdate/reportMotivation.csv"
+  # updateReportMotivation: "C:/Users/Евгений/Code/github.com/eugenefoxx/starline/motivationUpdate/reportMotivation.csv"
