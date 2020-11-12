@@ -2525,9 +2525,15 @@ func isCommmandAvailable(name string) bool {
 
 func initConfig() error {
 	MyDir := DirExists("/home/eugenearch/Code/github.com/eugenefoxx/starLine/motivationUpdate/configs")
+	MyDirWin := DirExists("C:/Users/Евгений/Code/github.com/eugenefoxx/starline/motivationUpdate/configs")
 	WinSLDir := DirExists("Z:/1_Планирование производства Победит1/motivationUpdate/configs")
 	if MyDir == true {
 		viper.AddConfigPath("/home/eugenearch/Code/github.com/eugenefoxx/starLine/motivationUpdate/configs")
+		viper.SetConfigName("config")
+		return viper.ReadInConfig()
+	}
+	if MyDirWin == true {
+		viper.AddConfigPath("C:/Users/Евгений/Code/github.com/eugenefoxx/starline/motivationUpdate/configs")
 		viper.SetConfigName("config")
 		return viper.ReadInConfig()
 	}
