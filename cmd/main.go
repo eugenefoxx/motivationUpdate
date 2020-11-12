@@ -249,7 +249,10 @@ func (h *Handler) MotivationRequest() http.HandlerFunc {
 		writer.Comma = ','
 		writer.Flush()
 
-		split, err := os.OpenFile("reportMotivation.csv", os.O_APPEND|os.O_WRONLY, 0644)
+		//	split, err := os.OpenFile("reportMotivation.csv", os.O_APPEND|os.O_WRONLY, 0644)
+		//	viper.GetString("update.updateReportMotivation")
+		split, err := os.OpenFile(viper.GetString("update.updateReportMotivation"), os.O_APPEND|os.O_WRONLY, 0644)
+
 		if err != nil {
 			log.Println(err)
 			return
