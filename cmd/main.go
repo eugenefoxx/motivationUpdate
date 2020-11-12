@@ -127,7 +127,7 @@ func main() {
 		open.StartWith("http://localhost:3001/motivationCounter", "google-chrome-stable")
 	}
 	if browser == false {
-		open.StartWith("http://localhost:3001/motivationCounter", "google.exe")
+		open.StartWith("http://localhost:3001/motivationCounter", "chrome.exe")
 	}
 	// chromium
 	http.ListenAndServe(":3001", r)
@@ -798,10 +798,12 @@ func (h *Handler) MotivationRequest() http.HandlerFunc {
 
 		calc := isCommmandAvailable("soffice")
 		if calc == true {
-			open.StartWith("reportMotivation.csv", "soffice")
+			//	open.StartWith("reportMotivation.csv", "soffice")
+			open.StartWith(viper.GetString("update.updateReportMotivation"), "soffice")
 		}
 		if calc == false {
-			open.StartWith("reportMotivation.csv", "scalc.exe")
+			//	open.StartWith("reportMotivation.csv", "scalc.exe")
+			open.StartWith(viper.GetString("update.updateReportMotivation"), "scalc.exe")
 		}
 
 		err = tpl.ExecuteTemplate(w, "index.html", nil)
