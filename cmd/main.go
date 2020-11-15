@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"text/template"
@@ -120,8 +121,11 @@ func main() {
 		//	r.HandleFunc("/motivationCounter", motivationRequest)
 		r.Get("/motivationCounter", h.PagemotivationRequest())
 		r.Post("/motivationCounter", h.MotivationRequest())
+
 	})
 
+	// определяем среду запуска, если Linux google-chrome-stable, если нет -
+	// то для Windows
 	browser := isCommmandAvailable("google-chrome-stable")
 	if browser == true {
 		open.StartWith("http://localhost:3001/motivationCounter", "google-chrome-stable")
@@ -129,7 +133,11 @@ func main() {
 	if browser == false {
 		open.StartWith("http://localhost:3001/motivationCounter", "chrome.exe")
 	}
-	// chromium
+
+	workDir, _ := os.Getwd()
+	filesDir := http.Dir(filepath.Join(workDir, "assets"))
+	FileServer(r, "/files", filesDir)
+
 	http.ListenAndServe(":3001", r)
 	/*
 		d := time.Date(2020, 11, 3, 12, 30, 0, 0, time.UTC)
@@ -799,6 +807,8 @@ func (h *Handler) MotivationRequest() http.HandlerFunc {
 		}
 		fmt.Println("Выполнена отладка программы АОИ перед сборкой 1 раз в месяц и чаще, балл - ", reponseDebugAOI)
 
+		// определяем среду запуска, если Linux - soffice, если нет -
+		// то для Windows - scalc.exe
 		calc := isCommmandAvailable("soffice")
 		if calc == true {
 			//	open.StartWith("reportMotivation.csv", "soffice")
@@ -2559,4 +2569,23 @@ func DirExists(name string) bool {
 		}
 	}
 	return false
+}
+
+func FileServer(r chi.Router, path string, root http.FileSystem) {
+	if strings.ContainsAny(path, "{}*") {
+		panic("FileServer does not permit any URL parameters.")
+	}
+
+	if path != "/" && path[len(path)-1] != '/' {
+		r.Get(path, http.RedirectHandler(path+"/", 301).ServeHTTP)
+		path += "/"
+	}
+	path += "*"
+
+	r.Get(path, func(w http.ResponseWriter, r *http.Request) {
+		rctx := chi.RouteContext(r.Context())
+		pathPrefix := strings.TrimSuffix(rctx.RoutePattern(), "/*")
+		fs := http.StripPrefix(pathPrefix, http.FileServer(root))
+		fs.ServeHTTP(w, r)
+	})
 }

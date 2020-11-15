@@ -10,6 +10,7 @@ update:
   updateReport: "/home/eugenearch/Code/github.com/eugenefoxx/starLine/motivationUpdate/report.csv"
   # updateReport: "Z:/1_Планирование производства Победит1/motivationUpdate/report.csv"
   # updateReport: "C:/Users/Евгений/Code/github.com/eugenefoxx/starline/motivationUpdate/report.csv"
+
   updateReportMotivation: "/home/eugenearch/Code/github.com/eugenefoxx/starLine/motivationUpdate/reportMotivation.csv"
   # updateReportMotivation: "Z:/1_Планирование производства Победит1/motivationUpdate/reportMotivation.csv"
   # updateReportMotivation: "C:/Users/Евгений/Code/github.com/eugenefoxx/starline/motivationUpdate/reportMotivation.csv"
