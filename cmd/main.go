@@ -56,7 +56,9 @@ const (
 	SetupTrafaretPrinterSEC = "Настройка принтера Sec"
 
 	// Выполнены работы по загрузке и\или настройке установщиков 22 часа в месяц и больше
-	SetupNPM = "Настройка установщиков"
+	SetupNPM         = "Настройка установщиков"
+	AssemblyLinePRIM = "Сборка на линии Prim"
+	AssemblyLineSEC  = "Сборка на линии Sec"
 
 	// Выполнены работы по проверке и\или настройке на АОИ KY 11 часов в месяц и больше (более 50 заготовок)
 	VerifyAOIKY    = "Проверка плат на АОИ"
@@ -2047,11 +2049,12 @@ func checkSetupNPM(rows [][]string, tabel, date1, date2 string) (int, int) {
 		//	dateEachF := dateEach.Format(layoutDate)
 		//if dateEachF >= dateFromV && dateEachF <= dateToV {
 		if dateEach.After(dateCheckFrom2) && dateEach.Before(dateCheckTo2) {
-			if each[2] == tabel {
-				if each[17] == SetupNPM && each[3] == "SMT" {
-					//	t, _ := time.Parse(layout, each[16])
+			if each[2] == tabel && each[18] != "SMT" && each[18] != "THT" {
+				if each[17] == SetupNPM || each[17] == AssemblyLinePRIM || each[17] == AssemblyLineSEC && each[3] == "SMT" {
+					//if each[17] == SetupNPM || each[17] == AssemblyLinePRIM || each[17] == AssemblyLineSEC && each[3] == "SMT" {
+					//t, _ := time.Parse("15:04:05", each[16])
 					//	sum = sum.Add(t.Sub(t0))
-					//	fmt.Println("Time -", t)
+					//fmt.Println("Time Check NPM - ; SetupNPM - ", t, each[17], each[19])
 
 					pt := strings.Split(each[16], ":") // parsed time by ":"
 					if len(pt) != 3 {
@@ -2078,7 +2081,7 @@ func checkSetupNPM(rows [][]string, tabel, date1, date2 string) (int, int) {
 		result := 1
 		return result, sumInSeconds
 	} else if sumInSeconds <= comparedDurations22Sec {
-		fmt.Printf("Sum [%s] =< compareDuration11 [%s]\n", sumInDuration.String(), comparedDuration22.String())
+		fmt.Printf("Sum [%s] =< compareDuration22 [%s]\n", sumInDuration.String(), comparedDuration22.String())
 		result := 0
 		return result, sumInSeconds
 	}
