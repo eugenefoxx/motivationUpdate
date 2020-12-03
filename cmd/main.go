@@ -52,8 +52,9 @@ const (
 	VerifyAOISEC = "Проверка на АОИ SEC"
 
 	// Выполнены работы по загрузке и\или настройке трафаретного принтера 2 раза в месяц и более
-	SetupTrafaretPrinterPRI = "Настройка принтера Pri"
-	SetupTrafaretPrinterSEC = "Настройка принтера Sec"
+	SetupTrafaretPrinterPRI  = "Настройка принтера Pri"
+	SetupTrafaretPrinterSEC  = "Настройка принтера Sec"
+	SetupTrafaretPrinterPRIM = "Настройка принтера Prim"
 
 	// Выполнены работы по загрузке и\или настройке установщиков 22 часа в месяц и больше
 	SetupNPM         = "Настройка установщиков"
@@ -593,7 +594,7 @@ func (h *Handler) MotivationRequest() http.HandlerFunc {
 		fmt.Println("Выполнены работы по проверке и или настройке на АОИ KY 11 часов и более 50 заготовок, балл - ", reponseVerifyAOIKY)
 
 		responseSetupTrafaretPrinter := checkSetupTrafaretPrinter(reportCsv2, search.Tabel, search.Date1, search.Date2)
-		if responseSetupTrafaretPrinter == 2 {
+		if responseSetupTrafaretPrinter == 1 {
 			responseSetupTrafaretPrinter = 3
 			result := []string{"Выполнены работы по загрузке и или настройке трафаретного принтера 2 раза в месяц и более" + "," + strconv.Itoa(responseSetupTrafaretPrinter)}
 			for _, v := range result {
@@ -604,7 +605,7 @@ func (h *Handler) MotivationRequest() http.HandlerFunc {
 				}
 			}
 			fmt.Println("Выполнены работы по загрузке и или настройке трафаретного принтера 2 раза в месяц и более, балл - ", responseSetupTrafaretPrinter)
-		} else if responseSetupTrafaretPrinter != 2 {
+		} else if responseSetupTrafaretPrinter != 1 {
 			responseSetupTrafaretPrinter = 0
 			result := []string{"Выполнены работы по загрузке и или настройке трафаретного принтера 2 раза в месяц и более" + "," + strconv.Itoa(responseSetupTrafaretPrinter)}
 			for _, v := range result {
@@ -970,19 +971,20 @@ func checkCreatNPMStarLine(rows [][]string, tabel, date1, date2 string) int {
 				if each[4] == createNPM && each[7] == StarLine {
 					counterNPM++
 					//	fmt.Println(counterNPM)
-					if counterNPM >= 1 {
-						//	fmt.Println("OK")
-						result := 1
-						return result
-						//	return resalt
-					} else if counterNPM < 1 {
-						//	fmt.Println("NOK")
-						result := 0
-						return result
-					}
 				}
 			}
 		}
+	}
+	fmt.Println("counterNPM - ", counterNPM)
+	if counterNPM >= 1 {
+		fmt.Println("OK")
+		result := 1
+		return result
+		//	return resalt
+	} else if counterNPM < 1 {
+		fmt.Println("NOK")
+		result := 0
+		return result
 	}
 	return result
 }
@@ -1016,19 +1018,20 @@ func checkCreatNPMContruct(rows [][]string, tabel, date1, date2 string) int {
 				if each[4] == createNPM && each[7] == Contruct {
 					counterNPM++
 					//	fmt.Println(counterNPM)
-					if counterNPM >= 1 {
-						//	fmt.Println("OK")
-						result := 1
-						return result
-						//	return resalt
-					} else if counterNPM < 1 {
-						//	fmt.Println("NOK")
-						result := 0
-						return result
-					}
 				}
 			}
 		}
+	}
+	fmt.Println("counterNPM - ", counterNPM)
+	if counterNPM >= 1 {
+		fmt.Println("OK")
+		result := 1
+		return result
+		//	return resalt
+	} else if counterNPM < 1 {
+		fmt.Println("NOK")
+		result := 0
+		return result
 	}
 	return result
 }
@@ -1063,19 +1066,20 @@ func checkProgrammCreateSEHO(rows [][]string, tabel, date1, date2 string) int {
 				if each[5] == ProgrammCreateSEHOPRI || each[5] == ProgrammCreateSEHOSEC {
 					counterCreateSEHO++
 					//	fmt.Println(counterNPM)
-					if counterCreateSEHO >= 1 {
-						//	fmt.Println("OK")
-						result := 1
-						return result
-						//	return resalt
-					} else if counterCreateSEHO < 1 {
-						//	fmt.Println("NOK")
-						result := 0
-						return result
-					}
 				}
 			}
 		}
+	}
+	fmt.Println("counterCreateSEHO - ", counterCreateSEHO)
+	if counterCreateSEHO >= 1 {
+		fmt.Println("OK")
+		result := 1
+		return result
+		//	return resalt
+	} else if counterCreateSEHO < 1 {
+		fmt.Println("NOK")
+		result := 0
+		return result
 	}
 	return result
 }
@@ -1111,19 +1115,20 @@ func checkProgrammCreateAOIModus(rows [][]string, tabel, date1, date2 string) in
 				if each[5] == ProgrammCreateAOIModusPRI || each[5] == ProgrammCreateAOIModusSEC && each[3] == "THT" {
 					counterCreateAOIModus++
 					//	fmt.Println(counterNPM)
-					if counterCreateAOIModus >= 1 {
-						//	fmt.Println("OK")
-						result := 1
-						return result
-						//	return resalt
-					} else if counterCreateAOIModus < 1 {
-						//	fmt.Println("NOK")
-						result := 0
-						return result
-					}
 				}
 			}
 		}
+	}
+	fmt.Println("counterCreateAOIModus - ", counterCreateAOIModus)
+	if counterCreateAOIModus >= 1 {
+		fmt.Println("OK")
+		result := 1
+		return result
+		//	return resalt
+	} else if counterCreateAOIModus < 1 {
+		fmt.Println("NOK")
+		result := 0
+		return result
 	}
 	return result
 }
@@ -1158,19 +1163,20 @@ func checkProgrammCreateAOIKohYoung(rows [][]string, tabel, date1, date2 string)
 				if each[4] == ProgrammCreateAOIKohYoungPRI || each[4] == ProgrammCreateAOIKohYoungSEC && each[3] == "SMT" {
 					counterCreateAOIKohYoung++
 					//	fmt.Println(counterNPM)
-					if counterCreateAOIKohYoung >= 1 {
-						//	fmt.Println("OK")
-						result := 1
-						return result
-						//	return resalt
-					} else if counterCreateAOIKohYoung < 1 {
-						//	fmt.Println("NOK")
-						result := 0
-						return result
-					}
 				}
 			}
 		}
+	}
+	fmt.Println("counterCreateAOIKohYoung - ", counterCreateAOIKohYoung)
+	if counterCreateAOIKohYoung >= 1 {
+		fmt.Println("OK")
+		result := 1
+		return result
+		//	return resalt
+	} else if counterCreateAOIKohYoung < 1 {
+		fmt.Println("NOK")
+		result := 0
+		return result
 	}
 	return result
 }
@@ -2116,24 +2122,24 @@ func checkSetupTrafaretPrinter(rows [][]string, tabel, date1, date2 string) int 
 
 		if dateEach.After(dateCheckFrom2) && dateEach.Before(dateCheckTo2) {
 			if each[2] == tabel {
-				if each[17] == SetupTrafaretPrinterPRI || each[17] == SetupTrafaretPrinterSEC && each[3] == "SMT" {
-					product := each[19]
-					fmt.Println("настройка трафаретного принтера, изделия - ", product)
+				if each[17] == SetupTrafaretPrinterPRI || each[17] == SetupTrafaretPrinterSEC || each[17] == SetupTrafaretPrinterPRIM && each[3] == "SMT" {
+
 					counterSetupTrafaretPrinter++
-					//	fmt.Println(counterNPM)
-					if counterSetupTrafaretPrinter >= 2 {
-						//	fmt.Println("OK")
-						result := 1
-						return result
-						//	return resalt
-					} else if counterSetupTrafaretPrinter < 2 {
-						//	fmt.Println("NOK")
-						result := 0
-						return result
-					}
 				}
+
 			}
 		}
+	}
+	fmt.Println("counterSetupTrafaretPrinter -", counterSetupTrafaretPrinter)
+	if counterSetupTrafaretPrinter >= 2 {
+		fmt.Println("OK")
+		result := 1
+		return result
+		//	return resalt
+	} else if counterSetupTrafaretPrinter < 2 {
+		fmt.Println("NOK")
+		result := 0
+		return result
 	}
 	return result
 }
@@ -2169,19 +2175,20 @@ func checkTraining(rows [][]string, tabel, date1, date2 string) int {
 
 					counterTraining++
 					//	fmt.Println(counterNPM)
-					if counterTraining >= 1 {
-						//	fmt.Println("OK")
-						result := 1
-						return result
-						//	return resalt
-					} else if counterTraining < 1 {
-						//	fmt.Println("NOK")
-						result := 0
-						return result
-					}
+
 				}
 			}
 		}
+	}
+	if counterTraining >= 1 {
+		fmt.Println("OK")
+		result := 1
+		return result
+		//	return resalt
+	} else if counterTraining < 1 {
+		fmt.Println("NOK")
+		result := 0
+		return result
 	}
 	return result
 }
@@ -2219,20 +2226,22 @@ func checkWriteInstraction(rows [][]string, tabel, date1, date2 string) int {
 					//	fmt.Println("Инструкция - ", intr)
 					counterWriteInstraction++
 					//	fmt.Println(counterNPM)
-					if counterWriteInstraction >= 1 {
-						//	fmt.Println("OK")
-						result := 1
-						return result
-						//	return resalt
-					} else if counterWriteInstraction < 1 {
-						//	fmt.Println("NOK")
-						result := 0
-						return result
-					}
+
 				}
 			}
 
 		}
+	}
+	fmt.Println("Инструкция - ")
+	if counterWriteInstraction >= 1 {
+		fmt.Println("OK")
+		result := 1
+		return result
+		//	return resalt
+	} else if counterWriteInstraction < 1 {
+		fmt.Println("NOK")
+		result := 0
+		return result
 	}
 	return result
 }
@@ -2273,25 +2282,24 @@ func checkVerifyProgrammInstaller(rows [][]string, tabel, date1, date2 string) i
 					//	fmt.Println("Инструкция - ", intr)
 					counterVerifyProgrammInstaller++
 					//	fmt.Println(counterNPM)
-					if counterVerifyProgrammInstaller >= 1 {
-						//	fmt.Println("OK")
-						result := 1
-						fmt.Println("resultVerifyInstaller OK -", result)
-						return result
-
-						//	return resalt
-					} else if counterVerifyProgrammInstaller < 1 {
-						//	fmt.Println("NOK")
-						result := 0
-						fmt.Println("resultVerifyInstaller NOK -", result)
-						return result
-					}
 
 				}
 			}
 
 		}
 
+	}
+	if counterVerifyProgrammInstaller >= 1 {
+		//	fmt.Println("OK")
+		result := 1
+		fmt.Println("resultVerifyInstaller OK -", result)
+		return result
+		//	return resalt
+	} else if counterVerifyProgrammInstaller < 1 {
+		//	fmt.Println("NOK")
+		result := 0
+		fmt.Println("resultVerifyInstaller NOK -", result)
+		return result
 	}
 
 	return result
@@ -2357,20 +2365,19 @@ func checkVerifyPCBLine(rows [][]string, tabel, date1, date2 string) int {
 				if each[17] == VerifyPCBLine && each[3] == "SMT" {
 
 					counterVerifyPCBLine++
-					if counterVerifyPCBLine >= 1 {
-						result := 1
-						//	fmt.Println("resultVerifyEquipment OK -", result)
-						return result
-					} else if counterVerifyPCBLine < 1 {
-						result := 0
-						//	fmt.Println("resultVerifyEquipment NOK -", result)
-						return result
-					}
 				}
-
 			}
 		}
 
+	}
+	if counterVerifyPCBLine >= 1 {
+		result := 1
+		fmt.Println("resultVerifyEquipment OK -", result)
+		return result
+	} else if counterVerifyPCBLine < 1 {
+		result := 0
+		fmt.Println("resultVerifyEquipment NOK -", result)
+		return result
 	}
 
 	return result
@@ -2407,20 +2414,18 @@ func checkVerifyPCBSolder(rows [][]string, tabel, date1, date2 string) int {
 				if each[17] == VerifyPCBSolder && each[3] == "THT" {
 
 					counterVerifyPCBSolder++
-					if counterVerifyPCBSolder >= 1 {
-						result := 1
-						//	fmt.Println("resultVerifyEquipment OK -", result)
-						return result
-					} else if counterVerifyPCBSolder < 1 {
-						result := 0
-						//	fmt.Println("resultVerifyEquipment NOK -", result)
-						return result
-					}
 				}
 			}
-
 		}
-
+	}
+	if counterVerifyPCBSolder >= 1 {
+		result := 1
+		fmt.Println("resultVerifyEquipment OK -", result)
+		return result
+	} else if counterVerifyPCBSolder < 1 {
+		result := 0
+		fmt.Println("resultVerifyEquipment NOK -", result)
+		return result
 	}
 
 	return result
@@ -2458,20 +2463,18 @@ func checkICT(rows [][]string, tabel, date1, date2 string) int {
 				if each[17] == ICT {
 
 					counterICT++
-					if counterICT >= 1 {
-						result := 1
-						//	fmt.Println("resultVerifyEquipment OK -", result)
-						return result
-					} else if counterICT < 1 {
-						result := 0
-						//	fmt.Println("resultVerifyEquipment NOK -", result)
-						return result
-					}
 				}
 			}
-
 		}
-
+	}
+	if counterICT >= 1 {
+		result := 1
+		fmt.Println("resultVerifyEquipment OK -", result)
+		return result
+	} else if counterICT < 1 {
+		result := 0
+		fmt.Println("resultVerifyEquipment NOK -", result)
+		return result
 	}
 
 	return result
@@ -2512,22 +2515,18 @@ func checkDebugAOI(rows [][]string, tabel, date1, date2 string) int {
 					intr := each[19]
 					fmt.Println("Изделие debugAOI - ", intr)
 					counterDebugAOI++
-					if counterDebugAOI >= 1 {
-						result := 1
-						//	fmt.Println("resultVerifyEquipment OK -", result)
-
-						return result
-
-					} else if counterDebugAOI < 1 {
-						result := 0
-						//	fmt.Println("resultVerifyEquipment NOK -", result)
-						return result
-					}
 				}
-
 			}
 		}
-
+	}
+	if counterDebugAOI >= 1 {
+		result := 1
+		fmt.Println("resultVerifyEquipment OK -", result)
+		return result
+	} else if counterDebugAOI < 1 {
+		result := 0
+		fmt.Println("resultVerifyEquipment NOK -", result)
+		return result
 	}
 
 	return result
