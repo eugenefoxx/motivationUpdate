@@ -15,6 +15,8 @@ import (
 	"text/template"
 	"time"
 
+	"github.com/eugenefoxx/starLine/motivationUpdate/gsheettocsv"
+
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/sirupsen/logrus"
@@ -109,6 +111,7 @@ func main() {
 	//	r.HandleFunc("/motivationCounter", pagemotivationRequest()).Methods("GET")
 	//	r.HandleFunc("/motivationCounter", motivationRequest()).Methods("POST")
 	//	http.Handle("/", r)
+	gsheettocsv.SRCmain()
 
 	r := chi.NewRouter()
 	h := &Handler{
@@ -870,7 +873,9 @@ func readseeker(rs io.ReadSeeker) ([][]string, error) {
 	}
 
 	lines := csv.NewReader(rs) //.ReadAll()
-	lines.Comma = '|'
+	//lines.Comma = '|'
+	lines.Comma = ','
+	lines.LazyQuotes = true
 	//	if err != nil {
 	//		return [][]string{}, err
 	//	}
@@ -980,7 +985,6 @@ func checkCreatNPMStarLine(rows [][]string, tabel, date1, date2 string) int {
 		fmt.Println("OK")
 		result := 1
 		return result
-		//	return resalt
 	} else if counterNPM < 1 {
 		fmt.Println("NOK")
 		result := 0
@@ -2123,10 +2127,8 @@ func checkSetupTrafaretPrinter(rows [][]string, tabel, date1, date2 string) int 
 		if dateEach.After(dateCheckFrom2) && dateEach.Before(dateCheckTo2) {
 			if each[2] == tabel {
 				if each[17] == SetupTrafaretPrinterPRI || each[17] == SetupTrafaretPrinterSEC || each[17] == SetupTrafaretPrinterPRIM && each[3] == "SMT" {
-
 					counterSetupTrafaretPrinter++
 				}
-
 			}
 		}
 	}
@@ -2172,10 +2174,7 @@ func checkTraining(rows [][]string, tabel, date1, date2 string) int {
 		if dateEach.After(dateCheckFrom2) && dateEach.Before(dateCheckTo2) {
 			if each[2] == tabel {
 				if each[17] == Training {
-
 					counterTraining++
-					//	fmt.Println(counterNPM)
-
 				}
 			}
 		}
