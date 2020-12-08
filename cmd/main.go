@@ -3,8 +3,10 @@ package main
 import (
 	"bufio"
 	"encoding/csv"
+	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -15,7 +17,7 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/eugenefoxx/starLine/motivationUpdate/gsheettocsv"
+	//d "github.com/eugenefoxx/starLine/motivationUpdate/gsheets"
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
@@ -24,6 +26,18 @@ import (
 	"github.com/skratchdot/open-golang/open"
 	"github.com/spf13/viper"
 )
+
+// ErrorResponse exported
+type ErrorResponse struct {
+	Message string
+	Err     error
+}
+
+// GeneralLogger exported
+var GeneralLogger *log.Logger
+
+// ErrorLogger exported
+var ErrorLogger *log.Logger
 
 const (
 	// Составлена 1 УП для установщиков для изделий СЛ 1 раз в 3 месяца и чаще
@@ -111,8 +125,9 @@ func main() {
 	//	r.HandleFunc("/motivationCounter", pagemotivationRequest()).Methods("GET")
 	//	r.HandleFunc("/motivationCounter", motivationRequest()).Methods("POST")
 	//	http.Handle("/", r)
-	gsheettocsv.SRCmain()
-
+	initLog()
+	SRCmain()
+	time.Sleep(5 * time.Second)
 	r := chi.NewRouter()
 	h := &Handler{
 		Mux: chi.NewMux(),
@@ -2589,4 +2604,126 @@ func FileServer(r chi.Router, path string, root http.FileSystem) {
 		fs := http.StripPrefix(pathPrefix, http.FileServer(root))
 		fs.ServeHTTP(w, r)
 	})
+}
+
+func SRCmain() {
+	// Strting the Application
+	GeneralLogger.Println("Starting Extracting Language Files from GoogleSheet - downloading csv approach..")
+
+	//content, err := ioutil.ReadFile("/home/eugenearch/Code/github.com/eugenefoxx/starLine/motivationUpdate/docs/url.txt")
+	content, err := ioutil.ReadFile(viper.GetString("data.url"))
+	if err != nil {
+		log.Fatal(err)
+	}
+	// Convert []byte to string and print to screen
+	text := string(content)
+	// Delete line break from text
+	text = strings.TrimSuffix(text, "\n")
+	fmt.Println(text)
+	//csvFilePath := "./outputs/gsheet.csv"
+	//csvFilePath := "./outputs/source.csv"
+	csvFilePath := viper.GetString("data.source")
+	errorResponse := Download(
+		//	"https://docs.google.com/spreadsheets/d/e/2PACX-1vS3Im-UdiFgf2aqvrTm14rXlExQOHYPKq9TTDXp0qjBU4Tnb4e2C5_kFQ8u1U0gfWuV70Ybe1gUO8fe/pub?gid=558395991&sin
+		text,
+		csvFilePath,
+		5000,
+	)
+	if errorResponse.Err != nil {
+		ErrorLogger.Println(errorResponse.Message, errorResponse.Err)
+		os.Exit(1)
+	}
+	WriteLanguageFiles(csvFilePath)
+	GeneralLogger.Println("Completed Execution..")
+}
+
+func initLog() {
+	//	absPath, err := filepath.Abs("./outputs/log")
+	//	if err != nil {
+	//		fmt.Println("Error reading given path:", err)
+	//	}
+
+	//	generalLog, err := os.OpenFile(absPath+"/general-log.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	//generalLog, err := os.OpenFile(viper.GetString("log.logfile"), os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	generalLog, err := os.OpenFile(viper.GetString("log.logfile"), os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	//generalLog, err := os.OpenFile("/home/eugenearch/Code/github.com/eugenefoxx/starLine/motivationUpdate/log/general-log.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	if err != nil {
+		fmt.Println("Error opening file:", err)
+		os.Exit(1)
+	}
+	GeneralLogger = log.New(generalLog, "General Logger:\t", log.Ldate|log.Ltime|log.Lshortfile)
+	ErrorLogger = log.New(generalLog, "Error Logger:\t", log.Ldate|log.Ltime|log.Lshortfile)
+}
+
+// ReturnErrorResponse exported
+func ReturnErrorResponse(err error, message string) *ErrorResponse {
+	return &ErrorResponse{
+		Message: message,
+		Err:     err,
+	}
+}
+
+// Should point to the folder where language json files are kept
+// const outputPath = "./outputs/"
+
+// Download exported
+func Download(url string, filename string, timeout int64) *ErrorResponse {
+	GeneralLogger.Println("Downloading", url, "...")
+	client := http.Client{
+		Timeout: time.Duration(timeout * int64(time.Second)),
+	}
+	resp, err := client.Get(url)
+	if err != nil {
+		ErrorLogger.Println("Cannot download file from the given url", err)
+		return ReturnErrorResponse(err, "Cannot download file from the given url")
+	}
+
+	if resp.StatusCode != 200 {
+		ErrorLogger.Printf("Response from the URL was %d, but expecting 200", resp.StatusCode)
+		return ReturnErrorResponse(
+			errors.New("Response returned with a status different from 200"),
+			"Response returned with a status different from 200",
+		)
+	}
+	if resp.Header["Content-Type"][0] != "text/csv" {
+		ErrorLogger.Printf("The file downloaded has content type '%s', expected 'text/csv'.", resp.Header["Content-Type"])
+		return ReturnErrorResponse(
+			errors.New("Downloaded file didn't contain the expected content-type: 'text/csv'"),
+			"Downloaded file didn't contain the expected content-type: 'text/csv'",
+		)
+	}
+
+	b, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		ErrorLogger.Println("Cannot read Body of Response", err)
+		return ReturnErrorResponse(err, "Cannot read Body of Response")
+	}
+
+	err = ioutil.WriteFile(filename, b, 0644)
+	if err != nil {
+		ErrorLogger.Println("Cannot write to file", err)
+		return ReturnErrorResponse(err, "Cannot write to file")
+	}
+
+	GeneralLogger.Println("Doc downloaded in ", filename)
+
+	return ReturnErrorResponse(nil, "")
+}
+
+// WriteLanguageFiles exported
+func WriteLanguageFiles(csvFilePath string) *ErrorResponse {
+	csvFile, err := os.Open(csvFilePath)
+	if err != nil {
+		ErrorLogger.Println("Cannot open file:"+csvFilePath, err)
+		return ReturnErrorResponse(err, "Cannot open file:"+csvFilePath)
+
+	}
+
+	//csvFileContent, err := csv.NewReader(csvFile).ReadAll()
+	_, errCSV := csv.NewReader(csvFile).ReadAll()
+	if errCSV != nil {
+		return ReturnErrorResponse(err, "Cannot read file:"+csvFilePath)
+	}
+
+	return ReturnErrorResponse(nil, "")
 }
