@@ -10,3 +10,19 @@ General Logger:	2020/12/09 02:08:21 main.go:2611: Starting Extracting Language F
 General Logger:	2020/12/09 02:08:21 main.go:2671: Downloading https://docs.google.com/spreadsheets/d/e/2PACX-1vS3Im-UdiFgf2aqvrTm14rXlExQOHYPKq9TTDXp0qjBU4Tnb4e2C5_kFQ8u1U0gfWuV70Ybe1gUO8fe/pub?gid=558395991&single=true&output=csv ...
 General Logger:	2020/12/09 02:08:22 main.go:2708: Doc downloaded in  /home/eugenearch/Code/github.com/eugenefoxx/starLine/motivationUpdate/docs/source.csv
 General Logger:	2020/12/09 02:08:22 main.go:2637: Completed Execution..
+General Logger:	2020/12/09 23:26:11 main.go:2649: Starting Extracting Language Files from GoogleSheet - downloading csv approach..
+General Logger:	2020/12/09 23:26:11 main.go:2709: Downloading https://docs.google.com/spreadsheets/d/e/2PACX-1vS3Im-UdiFgf2aqvrTm14rXlExQOHYPKq9TTDXp0qjBU4Tnb4e2C5_kFQ8u1U0gfWuV70Ybe1gUO8fe/pub?gid=558395991&single=true&output=csv ...
+General Logger:	2020/12/09 23:26:14 main.go:2746: Doc downloaded in  /home/eugenearch/Code/github.com/eugenefoxx/starLine/motivationUpdate/docs/source.csv
+General Logger:	2020/12/09 23:26:14 main.go:2675: Completed Execution..
+General Logger:	2020/12/09 23:30:45 main.go:2649: Starting Extracting Language Files from GoogleSheet - downloading csv approach..
+General Logger:	2020/12/09 23:30:45 main.go:2709: Downloading https://docs.google.com/spreadsheets/d/e/2PACX-1vS3Im-UdiFgf2aqvrTm14rXlExQOHYPKq9TTDXp0qjBU4Tnb4e2C5_kFQ8u1U0gfWuV70Ybe1gUO8fe/pub?gid=558395991&single=true&output=csv ...
+General Logger:	2020/12/09 23:30:46 main.go:2746: Doc downloaded in  /home/eugenearch/Code/github.com/eugenefoxx/starLine/motivationUpdate/docs/source.csv
+General Logger:	2020/12/09 23:30:46 main.go:2675: Completed Execution..
+General Logger:	2020/12/09 23:32:01 main.go:2649: Starting Extracting Language Files from GoogleSheet - downloading csv approach..
+General Logger:	2020/12/09 23:32:01 main.go:2709: Downloading https://docs.google.com/spreadsheets/d/e/2PACX-1vS3Im-UdiFgf2aqvrTm14rXlExQOHYPKq9TTDXp0qjBU4Tnb4e2C5_kFQ8u1U0gfWuV70Ybe1gUO8fe/pub?gid=558395991&single=true&output=csv ...
+General Logger:	2020/12/09 23:32:03 main.go:2746: Doc downloaded in  /home/eugenearch/Code/github.com/eugenefoxx/starLine/motivationUpdate/docs/source.csv
+General Logger:	2020/12/09 23:32:03 main.go:2675: Completed Execution..
+General Logger:	2020/12/09 23:34:19 main.go:2650: Starting Extracting Language Files from GoogleSheet - downloading csv approach..
+General Logger:	2020/12/09 23:34:19 main.go:2710: Downloading https://docs.google.com/spreadsheets/d/e/2PACX-1vS3Im-UdiFgf2aqvrTm14rXlExQOHYPKq9TTDXp0qjBU4Tnb4e2C5_kFQ8u1U0gfWuV70Ybe1gUO8fe/pub?gid=558395991&single=true&output=csv ...
+General Logger:	2020/12/09 23:34:20 main.go:2747: Doc downloaded in  /home/eugenearch/Code/github.com/eugenefoxx/starLine/motivationUpdate/docs/source.csv
+General Logger:	2020/12/09 23:34:20 main.go:2676: Completed Execution..

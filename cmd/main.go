@@ -487,7 +487,7 @@ func (h *Handler) MotivationRequest() http.HandlerFunc {
 			}
 		} else if reponseVerifyAOIModus != 2 {
 			reponseVerifyAOIModus = 0
-			result := []string{"Выполнены работы по проверке и или настройке на АОИ Modus 11 часов и более 50 заготовок" + "," + strconv.Itoa(reponseVerifyAOIModus) + "," + "время - " + sumInDuration.String() + " " + "количество - " + strconv.Itoa(reponseVerifyAOIModusPCBQty)}
+			result := []string{"Выполнены работы по проверке и или настройкVerifyEquipmentе на АОИ Modus 11 часов и более 50 заготовок" + "," + strconv.Itoa(reponseVerifyAOIModus) + "," + "время - " + sumInDuration.String() + " " + "количество - " + strconv.Itoa(reponseVerifyAOIModusPCBQty)}
 			for _, v := range result {
 				_, err = fmt.Fprintln(split, v)
 				if err != nil {
@@ -691,37 +691,60 @@ func (h *Handler) MotivationRequest() http.HandlerFunc {
 		//	fmt.Println("responseWriteInstraction - ", responseWriteInstraction)
 
 		reponseVerifyProgrammInstaller := checkVerifyProgrammInstaller(reportCsv2, search.Tabel, search.Date1, search.Date2)
-		if reponseVerifyProgrammInstaller == 1 {
-			reponseVerifyProgrammInstaller = 3
-			result := []string{"Выполнена проверка программы установщиков 1 раз месяц и чаще" + "," + strconv.Itoa(reponseVerifyProgrammInstaller)}
-			for _, v := range result {
-				_, err = fmt.Fprintln(split, v)
-				if err != nil {
-					split.Close()
-					return
+		/*	if reponseVerifyProgrammInstaller == 1 {
+				reponseVerifyProgrammInstaller = 3
+				result := []string{"Выполнена проверка программы установщиков 1 раз месяц и чаще" + "," + strconv.Itoa(reponseVerifyProgrammInstaller)}
+				for _, v := range result {
+					_, err = fmt.Fprintln(split, v)
+					if err != nil {
+						split.Close()
+						return
+					}
 				}
-			}
-			fmt.Println("Выполнена проверка программы установщиков 1 раз месяц и чаще, балл - ", reponseVerifyProgrammInstaller)
-		} else if reponseVerifyProgrammInstaller != 1 {
-			reponseVerifyProgrammInstaller = 0
-			result := []string{"Выполнена проверка программы установщиков 1 раз месяц и чаще" + "," + strconv.Itoa(reponseVerifyProgrammInstaller)}
-			for _, v := range result {
-				_, err = fmt.Fprintln(split, v)
-				if err != nil {
-					split.Close()
-					return
+				fmt.Println("Выполнена проверка программы установщиков 1 раз месяц и чаще, балл - ", reponseVerifyProgrammInstaller)
+			} else if reponseVerifyProgrammInstaller != 1 {
+				reponseVerifyProgrammInstaller = 0
+				result := []string{"Выполнена проверка программы установщиков 1 раз месяц и чаще" + "," + strconv.Itoa(reponseVerifyProgrammInstaller)}
+				for _, v := range result {
+					_, err = fmt.Fprintln(split, v)
+					if err != nil {
+						split.Close()
+						return
+					}
 				}
-			}
-			fmt.Println("Выполнена проверка программы установщиков 1 раз месяц и чаще, балл - ", reponseVerifyProgrammInstaller)
-		}
+				fmt.Println("Выполнена проверка программы установщиков 1 раз месяц и чаще, балл - ", reponseVerifyProgrammInstaller)
+			}*/
 		// fmt.Println("reponseVerifyProgrammInstaller", reponseVerifyProgrammInstaller)
-		//	reponseVerifyEquipment := checkVerifyEquipment(reportCsv2)
+		reponseVerifyEquipment := checkVerifyEquipment(reportCsv2, search.Tabel, search.Date1, search.Date2)
 		//	fmt.Println("reponseVerifyEquipment", reponseVerifyEquipment)
 		//	if reponseVerifyProgrammInstaller+reponseVerifyEquipment == 2 {
 		//		fmt.Println("responseVerifyInstaller - OK")
 		//	} else {
 		//		fmt.Println("responseVerifyInstaller - NOK")
 		//	}
+		responseVerifyProgrammEquipment := reponseVerifyProgrammInstaller + reponseVerifyEquipment
+		if responseVerifyProgrammEquipment == 1 {
+			responseVerifyProgrammEquipment = 3
+			result := []string{"Выполнена проверка программы установщиков 1 раз месяц и чаще / Проверка комплектации 1 раз месяц и чаще" + "," + strconv.Itoa(responseVerifyProgrammEquipment)}
+			for _, v := range result {
+				_, err = fmt.Fprintln(split, v)
+				if err != nil {
+					split.Close()
+					return
+				}
+			}
+		} else if responseVerifyProgrammEquipment != 1 {
+			responseVerifyProgrammEquipment = 0
+			result := []string{"Выполнена проверка программы установщиков 1 раз месяц и чаще / Проверка комплектации 1 раз месяц и чаще" + "," + strconv.Itoa(responseVerifyProgrammEquipment)}
+			for _, v := range result {
+				_, err = fmt.Fprintln(split, v)
+				if err != nil {
+					split.Close()
+					return
+				}
+			}
+		}
+		fmt.Println("Выполнена проверка программы установщиков 1 раз месяц и чаще / Проверка комплектации, балл - ", responseVerifyProgrammEquipment)
 
 		reponseVerifyPCBLine := checkVerifyPCBLine(reportCsv2, search.Tabel, search.Date1, search.Date2)
 		if reponseVerifyPCBLine == 1 {
@@ -2319,35 +2342,51 @@ func checkVerifyProgrammInstaller(rows [][]string, tabel, date1, date2 string) i
 	return result
 }
 
-/*
-func checkVerifyEquipment(rows [][]string) int {
+func checkVerifyEquipment(rows [][]string, tabel, date1, date2 string) int {
 	counterVerifyInstaller := 0
+
+	layoutDate := "02.01.2006" //"02.01.2006"
+	layoutDate2 := "2006-01-02"
+	dateFrom, _ := time.Parse(layoutDate2, date1)
+	dateFrom2 := dateFrom.Format(layoutDate)
+	dateFrom3, _ := time.Parse(layoutDate, dateFrom2)
+	dateTo, _ := time.Parse(layoutDate2, date2)
+	dateTo2 := dateTo.Format(layoutDate)
+	dateTo3, _ := time.Parse(layoutDate, dateTo2)
+	dateCheckFrom := dateFrom3.AddDate(0, 0, -1).Format(layoutDate)
+	dateCheckFrom2, _ := time.Parse(layoutDate, dateCheckFrom)
+	dateCheckTo := dateTo3.AddDate(0, 0, +1).Format(layoutDate)
+	dateCheckTo2, _ := time.Parse(layoutDate, dateCheckTo)
 
 	var result int
 	for _, each := range rows {
-		if each[18] == operator {
+		dateEach, _ := time.Parse(layoutDate, each[15])
+		if dateEach.After(dateCheckFrom2) && dateEach.Before(dateCheckTo2) {
+			if each[3] == tabel {
 
-			if each[17] == VerifyEquipment {
+				if each[17] == VerifyEquipment && each[3] == "SMT" {
 
-				counterVerifyInstaller++
-				if counterVerifyInstaller >= 1 {
-					result := 1
-					fmt.Println("resultVerifyEquipment OK -", result)
-					return result
-				} else if counterVerifyInstaller < 1 {
-					result := 0
-					fmt.Println("resultVerifyEquipment NOK -", result)
-					return result
+					counterVerifyInstaller++
 				}
+
 			}
 
 		}
+	}
 
+	if counterVerifyInstaller >= 1 {
+		result := 1
+		fmt.Println("resultVerifyEquipment OK -", result)
+		return result
+	} else if counterVerifyInstaller < 1 {
+		result := 0
+		fmt.Println("resultVerifyEquipment NOK -", result)
+		return result
 	}
 
 	return result
 }
-*/
+
 // VerifyPCBLine
 func checkVerifyPCBLine(rows [][]string, tabel, date1, date2 string) int {
 	counterVerifyPCBLine := 0
@@ -2386,11 +2425,11 @@ func checkVerifyPCBLine(rows [][]string, tabel, date1, date2 string) int {
 	}
 	if counterVerifyPCBLine >= 1 {
 		result := 1
-		fmt.Println("resultVerifyEquipment OK -", result)
+		fmt.Println("resultVerifyPCBLine OK -", result)
 		return result
 	} else if counterVerifyPCBLine < 1 {
 		result := 0
-		fmt.Println("resultVerifyEquipment NOK -", result)
+		fmt.Println("resultVerifyPCBLine NOK -", result)
 		return result
 	}
 
@@ -2434,11 +2473,11 @@ func checkVerifyPCBSolder(rows [][]string, tabel, date1, date2 string) int {
 	}
 	if counterVerifyPCBSolder >= 1 {
 		result := 1
-		fmt.Println("resultVerifyEquipment OK -", result)
+		fmt.Println("resultVerifyPCBSolder OK -", result)
 		return result
 	} else if counterVerifyPCBSolder < 1 {
 		result := 0
-		fmt.Println("resultVerifyEquipment NOK -", result)
+		fmt.Println("resultVerifyPCBSolder NOK -", result)
 		return result
 	}
 
@@ -2483,11 +2522,11 @@ func checkICT(rows [][]string, tabel, date1, date2 string) int {
 	}
 	if counterICT >= 1 {
 		result := 1
-		fmt.Println("resultVerifyEquipment OK -", result)
+		fmt.Println("resultICT OK -", result)
 		return result
 	} else if counterICT < 1 {
 		result := 0
-		fmt.Println("resultVerifyEquipment NOK -", result)
+		fmt.Println("resultICT NOK -", result)
 		return result
 	}
 
@@ -2535,11 +2574,11 @@ func checkDebugAOI(rows [][]string, tabel, date1, date2 string) int {
 	}
 	if counterDebugAOI >= 1 {
 		result := 1
-		fmt.Println("resultVerifyEquipment OK -", result)
+		fmt.Println("resultDebugAOI OK -", result)
 		return result
 	} else if counterDebugAOI < 1 {
 		result := 0
-		fmt.Println("resultVerifyEquipment NOK -", result)
+		fmt.Println("resultDebugAOI NOK -", result)
 		return result
 	}
 
