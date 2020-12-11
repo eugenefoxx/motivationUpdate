@@ -26,3 +26,11 @@ General Logger:	2020/12/09 23:34:19 main.go:2650: Starting Extracting Language F
 General Logger:	2020/12/09 23:34:19 main.go:2710: Downloading https://docs.google.com/spreadsheets/d/e/2PACX-1vS3Im-UdiFgf2aqvrTm14rXlExQOHYPKq9TTDXp0qjBU4Tnb4e2C5_kFQ8u1U0gfWuV70Ybe1gUO8fe/pub?gid=558395991&single=true&output=csv ...
 General Logger:	2020/12/09 23:34:20 main.go:2747: Doc downloaded in  /home/eugenearch/Code/github.com/eugenefoxx/starLine/motivationUpdate/docs/source.csv
 General Logger:	2020/12/09 23:34:20 main.go:2676: Completed Execution..
+General Logger:	2020/12/10 13:40:32 main.go:2650: Starting Extracting Language Files from GoogleSheet - downloading csv approach..
+General Logger:	2020/12/10 13:40:32 main.go:2710: Downloading https://docs.google.com/spreadsheets/d/e/2PACX-1vS3Im-UdiFgf2aqvrTm14rXlExQOHYPKq9TTDXp0qjBU4Tnb4e2C5_kFQ8u1U0gfWuV70Ybe1gUO8fe/pub?gid=558395991&single=true&output=csv ...
+Error Logger:	2020/12/10 13:40:32 main.go:2716: Cannot download file from the given url Get "https://docs.google.com/spreadsheets/d/e/2PACX-1vS3Im-UdiFgf2aqvrTm14rXlExQOHYPKq9TTDXp0qjBU4Tnb4e2C5_kFQ8u1U0gfWuV70Ybe1gUO8fe/pub?gid=558395991&single=true&output=csv": dial tcp: lookup docs.google.com: Temporary failure in name resolution
+Error Logger:	2020/12/10 13:40:32 main.go:2672: Cannot download file from the given url Get "https://docs.google.com/spreadsheets/d/e/2PACX-1vS3Im-UdiFgf2aqvrTm14rXlExQOHYPKq9TTDXp0qjBU4Tnb4e2C5_kFQ8u1U0gfWuV70Ybe1gUO8fe/pub?gid=558395991&single=true&output=csv": dial tcp: lookup docs.google.com: Temporary failure in name resolution
+General Logger:	2020/12/10 13:41:17 main.go:2650: Starting Extracting Language Files from GoogleSheet - downloading csv approach..
+General Logger:	2020/12/10 13:41:17 main.go:2710: Downloading https://docs.google.com/spreadsheets/d/e/2PACX-1vS3Im-UdiFgf2aqvrTm14rXlExQOHYPKq9TTDXp0qjBU4Tnb4e2C5_kFQ8u1U0gfWuV70Ybe1gUO8fe/pub?gid=558395991&single=true&output=csv ...
+General Logger:	2020/12/10 13:41:20 main.go:2747: Doc downloaded in  /home/eugenearch/Code/github.com/eugenefoxx/starLine/motivationUpdate/docs/source.csv
+General Logger:	2020/12/10 13:41:20 main.go:2676: Completed Execution..

@@ -723,7 +723,7 @@ func (h *Handler) MotivationRequest() http.HandlerFunc {
 		//		fmt.Println("responseVerifyInstaller - NOK")
 		//	}
 		responseVerifyProgrammEquipment := reponseVerifyProgrammInstaller + reponseVerifyEquipment
-		if responseVerifyProgrammEquipment == 1 {
+		if responseVerifyProgrammEquipment >= 1 {
 			responseVerifyProgrammEquipment = 3
 			result := []string{"Выполнена проверка программы установщиков 1 раз месяц и чаще / Проверка комплектации 1 раз месяц и чаще" + "," + strconv.Itoa(responseVerifyProgrammEquipment)}
 			for _, v := range result {
@@ -733,7 +733,7 @@ func (h *Handler) MotivationRequest() http.HandlerFunc {
 					return
 				}
 			}
-		} else if responseVerifyProgrammEquipment != 1 {
+		} else if responseVerifyProgrammEquipment == 0 {
 			responseVerifyProgrammEquipment = 0
 			result := []string{"Выполнена проверка программы установщиков 1 раз месяц и чаще / Проверка комплектации 1 раз месяц и чаще" + "," + strconv.Itoa(responseVerifyProgrammEquipment)}
 			for _, v := range result {
