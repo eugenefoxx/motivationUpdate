@@ -2374,11 +2374,12 @@ func checkVerifyEquipment(rows [][]string, tabel, date1, date2 string) int {
 		}
 	}
 
+	fmt.Println("Summa resultVerifyEquipment: ", counterVerifyInstaller)
 	if counterVerifyInstaller >= 1 {
 		result := 1
 		fmt.Println("resultVerifyEquipment OK -", result)
 		return result
-	} else if counterVerifyInstaller < 1 {
+	} else if counterVerifyInstaller = 0 {
 		result := 0
 		fmt.Println("resultVerifyEquipment NOK -", result)
 		return result
