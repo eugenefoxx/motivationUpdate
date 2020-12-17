@@ -94,7 +94,7 @@ const (
 
 	//Выполнена проверка программы установщиков 1 раз месяц и чаще
 	VerifyProgrammInstaller = "Проверка программы установщиков"
-	VerifyEquipment         = "Проверка комплектации"
+	VerifyEquipment         = "Проверка комплектации" //"Проверка комплектации"
 
 	// Выполнена проверка первой платы после сборки установщиками, оставлен комментарий в задаче 1 раз месяц и чаще
 	VerifyPCBLine = "Проверка первой платы до оплавления"
@@ -2289,20 +2289,15 @@ func checkWriteInstraction(rows [][]string, tabel, date1, date2 string) int {
 func checkVerifyProgrammInstaller(rows [][]string, tabel, date1, date2 string) int {
 
 	counterVerifyProgrammInstaller := 0
+
 	layoutDate := "02.01.2006" //"02.01.2006"
 	layoutDate2 := "2006-01-02"
-
 	dateFrom, _ := time.Parse(layoutDate2, date1)
-
 	dateFrom2 := dateFrom.Format(layoutDate)
-
 	dateFrom3, _ := time.Parse(layoutDate, dateFrom2)
-
 	dateTo, _ := time.Parse(layoutDate2, date2)
-
 	dateTo2 := dateTo.Format(layoutDate)
 	dateTo3, _ := time.Parse(layoutDate, dateTo2)
-
 	dateCheckFrom := dateFrom3.AddDate(0, 0, -1).Format(layoutDate)
 	dateCheckFrom2, _ := time.Parse(layoutDate, dateCheckFrom)
 	dateCheckTo := dateTo3.AddDate(0, 0, +1).Format(layoutDate)
@@ -2317,6 +2312,7 @@ func checkVerifyProgrammInstaller(rows [][]string, tabel, date1, date2 string) i
 				if each[17] == VerifyProgrammInstaller {
 					//	intr := each[17]
 					//	fmt.Println("Инструкция - ", intr)
+					fmt.Println("VerifyProgrammInstaller -", each[17])
 					counterVerifyProgrammInstaller++
 					//	fmt.Println(counterNPM)
 
@@ -2326,6 +2322,7 @@ func checkVerifyProgrammInstaller(rows [][]string, tabel, date1, date2 string) i
 		}
 
 	}
+	fmt.Println("Summa VerifyProgrammInstaller: ", counterVerifyProgrammInstaller)
 	if counterVerifyProgrammInstaller >= 1 {
 		//	fmt.Println("OK")
 		result := 1
@@ -2362,10 +2359,10 @@ func checkVerifyEquipment(rows [][]string, tabel, date1, date2 string) int {
 	for _, each := range rows {
 		dateEach, _ := time.Parse(layoutDate, each[15])
 		if dateEach.After(dateCheckFrom2) && dateEach.Before(dateCheckTo2) {
-			if each[3] == tabel {
+			if each[2] == tabel {
 
-				if each[17] == VerifyEquipment && each[3] == "SMT" {
-
+				if each[17] == VerifyEquipment { // && each[3] == "SMT"
+					fmt.Println("VerifyEquipment: ", each[17])
 					counterVerifyInstaller++
 				}
 
@@ -2379,7 +2376,7 @@ func checkVerifyEquipment(rows [][]string, tabel, date1, date2 string) int {
 		result := 1
 		fmt.Println("resultVerifyEquipment OK -", result)
 		return result
-	} else if counterVerifyInstaller = 0 {
+	} else if counterVerifyInstaller == 0 {
 		result := 0
 		fmt.Println("resultVerifyEquipment NOK -", result)
 		return result
