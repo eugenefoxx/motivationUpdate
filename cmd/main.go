@@ -18,11 +18,9 @@ import (
 	"time"
 
 	//d "github.com/eugenefoxx/starLine/motivationUpdate/gsheets"
-
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/sirupsen/logrus"
-
 	"github.com/skratchdot/open-golang/open"
 	"github.com/spf13/viper"
 )
@@ -76,11 +74,25 @@ const (
 	SetupNPM         = "Настройка установщиков"
 	AssemblyLinePRIM = "Сборка на линии Prim"
 	AssemblyLineSEC  = "Сборка на линии Sec"
+	//	++++
+	ChargingFeederPrim  = "Зарядка питателей Prim"
+	ChargingFeederSec   = "Зарядка питателей Sec"
+	BuildupOfEquipment  = "Наращивание комплектации"
+	PreparingCompCharg  = "Подготовка компонентов к зарядке"
+	DischargeFeederPrim = "Разрядка питателей Prim"
+	DischargeFeederSec  = "Разрядка питателей Sec"
+	VerifyCompToLine    = "Верификация компонентов на линию"
 
 	// Выполнены работы по проверке и\или настройке на АОИ KY 11 часов в месяц и больше (более 50 заготовок)
 	VerifyAOIKY    = "Проверка плат на АОИ"
 	VerifyAOIKYPRI = "Проверка плат на АОИ Prim"
 	VerifyAOIKYSEC = "Проверка плат на АОИ Sec"
+	// добавил эти операции только по времени к функ checkVerifyAOIKYTime
+	DebugAOI    = "Настойка первой платы на АОИ" // убрать - см выше
+	DebugAOIPRI = "Настойка первой платы на АОИ PRI"
+	DebugAOISEC = "Настойка первой платы на АОИ SEC" //	DebugAOI    = "Настойка первой платы на АОИ"
+	//	DebugAOIPRI = "Настойка первой платы на АОИ PRI"
+	//	DebugAOISEC = "Настойка первой платы на АОИ SEC"
 	// Выполнены работы по разбраковке на ревью станции после АОИ KY 11 часов в месяц и больше (более 50 заготовок)
 	ReviewStationPRI = "ReviewStation pri"
 	ReviewStationSEC = "ReviewStation sec"
@@ -107,9 +119,13 @@ const (
 
 	// Выполнена отладка программы АОИ перед сборкой 1 раз в месяц и чаще.
 	// Настойка первой платы на АОИ  Настойка первой платы на АОИ SEC Настойка первой платы на АОИ PRI
-	DebugAOI    = "Настойка первой платы на АОИ"
-	DebugAOIPRI = "Настойка первой платы на АОИ PRI"
-	DebugAOISEC = "Настойка первой платы на АОИ SEC"
+	//	DebugAOI    = "Настойка первой платы на АОИ" // убрать - см выше
+	//	DebugAOIPRI = "Настойка первой платы на АОИ PRI"
+	//	DebugAOISEC = "Настойка первой платы на АОИ SEC"
+
+	// Выполнена отладка программы АОИ перед сборкой 1раз в месяц и чаще
+	DebugProgrammAOIPRI = "Отладка программы на AOI PRI"
+	DebugProgrammAOISEC = "Отладка программы на AOI SEC"
 )
 
 type Handler struct {
@@ -487,7 +503,7 @@ func (h *Handler) MotivationRequest() http.HandlerFunc {
 			}
 		} else if reponseVerifyAOIModus != 2 {
 			reponseVerifyAOIModus = 0
-			result := []string{"Выполнены работы по проверке и или настройкVerifyEquipmentе на АОИ Modus 11 часов и более 50 заготовок" + "," + strconv.Itoa(reponseVerifyAOIModus) + "," + "время - " + sumInDuration.String() + " " + "количество - " + strconv.Itoa(reponseVerifyAOIModusPCBQty)}
+			result := []string{"Выполнены работы по проверке и или настройк на АОИ Modus 11 часов и более 50 заготовок" + "," + strconv.Itoa(reponseVerifyAOIModus) + "," + "время - " + sumInDuration.String() + " " + "количество - " + strconv.Itoa(reponseVerifyAOIModusPCBQty)}
 			for _, v := range result {
 				_, err = fmt.Fprintln(split, v)
 				if err != nil {
@@ -826,11 +842,35 @@ func (h *Handler) MotivationRequest() http.HandlerFunc {
 		}
 		//
 		// fmt.Println("responseICT - ", responseICT)
-
-		reponseDebugAOI := checkDebugAOI(reportCsv2, search.Tabel, search.Date1, search.Date2)
-		if reponseDebugAOI == 1 {
-			reponseDebugAOI = 3
-			result := []string{"Выполнена отладка программы АОИ перед сборкой 1 раз в месяц и чаще" + "," + strconv.Itoa(reponseDebugAOI)}
+		/*
+			reponseDebugAOI := checkDebugAOI(reportCsv2, search.Tabel, search.Date1, search.Date2)
+			if reponseDebugAOI == 1 {
+				reponseDebugAOI = 3
+				result := []string{"Выполнена отладка программы АОИ перед сборкой 1 раз в месяц и чаще" + "," + strconv.Itoa(reponseDebugAOI)}
+				for _, v := range result {
+					_, err = fmt.Fprintln(split, v)
+					if err != nil {
+						split.Close()
+						return
+					}
+				}
+			} else if reponseDebugAOI != 1 {
+				reponseDebugAOI = 0
+				result := []string{"Выполнена отладка программы АОИ перед сборкой 1 раз в месяц и чаще" + "," + strconv.Itoa(reponseDebugAOI)}
+				for _, v := range result {
+					_, err = fmt.Fprintln(split, v)
+					if err != nil {
+						split.Close()
+						return
+					}
+				}
+			}
+			fmt.Println("Выполнена отладка программы АОИ перед сборкой 1 раз в месяц и чаще, балл - ", reponseDebugAOI)
+		*/
+		responsedebugProgrammAOI := debugProgrammAOI(reportCsv2, search.Tabel, search.Date1, search.Date2)
+		if responsedebugProgrammAOI == 1 {
+			responsedebugProgrammAOI = 3
+			result := []string{"Выполнена отладка программы АОИ перед сборкой 1раз в месяц и чаще" + "," + strconv.Itoa(responsedebugProgrammAOI)}
 			for _, v := range result {
 				_, err = fmt.Fprintln(split, v)
 				if err != nil {
@@ -838,9 +878,9 @@ func (h *Handler) MotivationRequest() http.HandlerFunc {
 					return
 				}
 			}
-		} else if reponseDebugAOI != 1 {
-			reponseDebugAOI = 0
-			result := []string{"Выполнена отладка программы АОИ перед сборкой 1 раз в месяц и чаще" + "," + strconv.Itoa(reponseDebugAOI)}
+		} else if responsedebugProgrammAOI != 1 {
+			responsedebugProgrammAOI = 0
+			result := []string{"Выполнена отладка программы АОИ перед сборкой 1раз в месяц и чаще" + "," + strconv.Itoa(responsedebugProgrammAOI)}
 			for _, v := range result {
 				_, err = fmt.Fprintln(split, v)
 				if err != nil {
@@ -849,8 +889,7 @@ func (h *Handler) MotivationRequest() http.HandlerFunc {
 				}
 			}
 		}
-		fmt.Println("Выполнена отладка программы АОИ перед сборкой 1 раз в месяц и чаще, балл - ", reponseDebugAOI)
-
+		fmt.Println("Выполнена отладка программы АОИ перед сборкой 1раз в месяц и чаще, балл -", responsedebugProgrammAOI)
 		// определяем среду запуска, если Linux - soffice, если нет -
 		// то для Windows - scalc.exe
 		calc := isCommmandAvailable("soffice")
@@ -1829,7 +1868,7 @@ func checkVerifyAOIKYTime(rows [][]string, tabel, date1, date2 string) (int, int
 		//if dateEachF >= dateFromV && dateEachF <= dateToV {
 		if dateEach.After(dateCheckFrom2) && dateEach.Before(dateCheckTo2) {
 			if each[2] == tabel {
-				if each[17] == VerifyAOIKYPRI || each[17] == VerifyAOIKYSEC || each[17] == VerifyAOIKY && each[3] == "SMT" {
+				if each[17] == VerifyAOIKYPRI || each[17] == VerifyAOIKYSEC || each[17] == VerifyAOIKY || each[17] == DebugAOI || each[17] == DebugAOIPRI || each[17] == DebugAOISEC && each[3] == "SMT" {
 					//	t, _ := time.Parse(layout, each[16])
 					//	sum = sum.Add(t.Sub(t0))
 					//	fmt.Println("Time -", t)
@@ -2098,7 +2137,9 @@ func checkSetupNPM(rows [][]string, tabel, date1, date2 string) (int, int) {
 		//if dateEachF >= dateFromV && dateEachF <= dateToV {
 		if dateEach.After(dateCheckFrom2) && dateEach.Before(dateCheckTo2) {
 			if each[2] == tabel && each[18] != "SMT" && each[18] != "THT" {
-				if each[17] == SetupNPM || each[17] == AssemblyLinePRIM || each[17] == AssemblyLineSEC && each[3] == "SMT" {
+				if each[17] == SetupNPM || each[17] == AssemblyLinePRIM || each[17] == AssemblyLineSEC || each[17] == ChargingFeederPrim ||
+					each[17] == ChargingFeederSec || each[17] == BuildupOfEquipment || each[17] == PreparingCompCharg ||
+					each[17] == DischargeFeederPrim || each[17] == DischargeFeederSec || each[17] == VerifyCompToLine && each[3] == "SMT" {
 					//if each[17] == SetupNPM || each[17] == AssemblyLinePRIM || each[17] == AssemblyLineSEC && each[3] == "SMT" {
 					//t, _ := time.Parse("15:04:05", each[16])
 					//	sum = sum.Add(t.Sub(t0))
@@ -2583,6 +2624,50 @@ func checkDebugAOI(rows [][]string, tabel, date1, date2 string) int {
 	return result
 }
 
+// Выполнена отладка программы АОИ перед сборкой 1раз в месяц и чаще
+func debugProgrammAOI(rows [][]string, tabel, date1, date2 string) int {
+	counterDebugProgrammAOI := 0
+
+	layoutDate := "02.01.2006" //"02.01.2006"
+	layoutDate2 := "2006-01-02"
+	dateFrom, _ := time.Parse(layoutDate2, date1)
+	dateFrom2 := dateFrom.Format(layoutDate)
+	dateFrom3, _ := time.Parse(layoutDate, dateFrom2)
+	dateTo, _ := time.Parse(layoutDate2, date2)
+	dateTo2 := dateTo.Format(layoutDate)
+	dateTo3, _ := time.Parse(layoutDate, dateTo2)
+	dateCheckFrom := dateFrom3.AddDate(0, 0, -1).Format(layoutDate)
+	dateCheckFrom2, _ := time.Parse(layoutDate, dateCheckFrom)
+	dateCheckTo := dateTo3.AddDate(0, 0, +1).Format(layoutDate)
+	dateCheckTo2, _ := time.Parse(layoutDate, dateCheckTo)
+	var result int
+
+	for _, each := range rows {
+		dateEach, _ := time.Parse(layoutDate, each[15])
+		if dateEach.After(dateCheckFrom2) && dateEach.Before(dateCheckTo2) {
+			if each[2] == tabel {
+				if each[17] == DebugProgrammAOIPRI || each[17] == DebugProgrammAOISEC && each[3] == "SMT" {
+					counterDebugProgrammAOI++
+				}
+			}
+		}
+	}
+
+	fmt.Println("Summa counterDebugProgrammAOI: ", counterDebugProgrammAOI)
+	if counterDebugProgrammAOI >= 1 {
+		result := 1
+		fmt.Println("resultDebugProgrammAOI OK -", result)
+		return result
+	} else if counterDebugProgrammAOI < 1 {
+		result := 0
+		fmt.Println("resultDebugProgrammAOI NOK -", result)
+		return result
+	}
+
+	return result
+
+}
+
 func isCommmandAvailable(name string) bool {
 	cmd := exec.Command("/bin/sh", "-c", "command", "-v", name)
 	if err := cmd.Run(); err != nil {
@@ -2655,6 +2740,7 @@ func SRCmain() {
 	// Convert []byte to string and print to screen
 	text := string(content)
 	// Delete line break from text
+	// text = strings.TrimSuffix(text, "\r\n")
 	text = strings.TrimSuffix(text, "\n")
 	fmt.Println(text)
 	//csvFilePath := "./outputs/gsheet.csv"
