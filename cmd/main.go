@@ -126,6 +126,12 @@ const (
 	// Выполнена отладка программы АОИ перед сборкой 1раз в месяц и чаще
 	DebugProgrammAOIPRI = "Отладка программы на AOI PRI"
 	DebugProgrammAOISEC = "Отладка программы на AOI SEC"
+
+	// вычесление выполнения нормы
+	/*
+		DischargeFeederPrim = "Разрядка питателей Prim"
+		DischargeFeederSec  = "Разрядка питателей Sec"
+	*/
 )
 
 type Handler struct {
@@ -2667,6 +2673,42 @@ func debugProgrammAOI(rows [][]string, tabel, date1, date2 string) int {
 	return result
 
 }
+
+/*
+func rateDischargeFeeder(rows [][]string, tabel, date1, date2 string) int {
+	counterDischargeFeeder := 0
+
+	layoutDate := "02.01.2006"
+	layoutDate2 := "2006-01-02"
+	dateFrom, _ := time.Parse(layoutDate2, date1)
+
+	dateFrom2 := dateFrom.Format(layoutDate)
+
+	dateFrom3, _ := time.Parse(layoutDate, dateFrom2)
+
+	dateTo, _ := time.Parse(layoutDate2, date2)
+
+	dateTo2 := dateTo.Format(layoutDate)
+	dateTo3, _ := time.Parse(layoutDate, dateTo2)
+
+	dateCheckFrom := dateFrom3.AddDate(0, 0, -1).Format(layoutDate)
+	dateCheckFrom2, _ := time.Parse(layoutDate, dateCheckFrom)
+	dateCheckTo := dateTo3.AddDate(0, 0, +1).Format(layoutDate)
+	dateCheckTo2, _ := time.Parse(layoutDate, dateCheckTo)
+
+	var result int
+	for _, each := range rows {
+		dateEach, _ := time.Parse(layoutDate, each[15])
+
+		if dateEach.After(dateCheckFrom2) && dateEach.Before(dateCheckTo2) {
+			if each[2] == tabel {
+
+			}
+		}
+	}
+	return result
+}
+*/
 
 func isCommmandAvailable(name string) bool {
 	cmd := exec.Command("/bin/sh", "-c", "command", "-v", name)
